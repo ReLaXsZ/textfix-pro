@@ -1,5 +1,6 @@
 'use client';
 
+import ShareButtons from "./ShareButtons";
 import React, { useState, useEffect, useRef } from 'react';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
@@ -100,8 +101,8 @@ const translations = {
       slug: 'Превръща текст в чист URL адрес на латиница',
       stripHtml: 'Премахва скрити HTML тагове и форматиране',
       removeSpaces: 'Премахва излишните празни места и табулации',
-      removeDuplicates: 'Изтрива напълно дублиращите се редове',
-      removeEmpty: 'Премахва празните редове в текста',
+      removeDuplicateLines: 'Изтрива напълно дублиращите се редове',
+      removeEmptyLines: 'Премахва празните редове в текста',
       sortLines: 'Сортира всички редове по азбучен ред',
       encodeBase64: 'Кодира текста в зашифрован Base64 формат',
       decodeBase64: 'Декодира Base64 обратно в нормален текст',
@@ -976,6 +977,9 @@ export default function Home() {
             </button>
           </div>
         </header>
+
+        {/* 🌟 Бутони за споделяне (Добавени тук веднага след хедъра) */}
+        <ShareButtons />
 
         {/* Статистика */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-center">
