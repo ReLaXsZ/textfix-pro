@@ -8,7 +8,6 @@ export default function ShareButtons() {
   const shareTitle = "TextFix Pro";
   const shareText = "Вижте този страхотен интелигентен текстов редактор и помощник онлайн!";
 
-  // Родно системно споделяне (Web Share API) - отваря приложения/контакти на телефона (Messenger, Viber, Instagram и др.)
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
@@ -53,6 +52,12 @@ export default function ShareButtons() {
       case "whatsapp":
         url = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
         break;
+      case "telegram":
+        url = `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`;
+        break;
+      case "reddit":
+        url = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
+        break;
       default:
         return;
     }
@@ -62,11 +67,10 @@ export default function ShareButtons() {
 
   return (
     <div className="w-full max-w-4xl mx-auto my-6 p-4 bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 text-slate-300">
-      {/* Кликащ бутон с иконката за системно споделяне (телефонни приложения) */}
       <button
         onClick={handleNativeShare}
         className="flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-indigo-400 transition-colors group cursor-pointer"
-        title="Натиснете за бързо споделяне чрез браузъра"
+        title="Натиснете за бързо споделяне чрез устройството"
       >
         <span className="p-2 bg-indigo-600/20 group-hover:bg-indigo-600/30 rounded-lg border border-indigo-500/30 transition-all">
           <svg
@@ -89,7 +93,6 @@ export default function ShareButtons() {
         <span>Споделете сайта:</span>
       </button>
 
-      {/* Бързи бутони за социални мрежи */}
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => handleShare("facebook")}
@@ -103,6 +106,20 @@ export default function ShareButtons() {
           className="px-3 py-1.5 text-xs font-medium bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-lg transition-all"
         >
           WhatsApp
+        </button>
+
+        <button
+          onClick={() => handleShare("telegram")}
+          className="px-3 py-1.5 text-xs font-medium bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/30 rounded-lg transition-all"
+        >
+          Telegram
+        </button>
+
+        <button
+          onClick={() => handleShare("reddit")}
+          className="px-3 py-1.5 text-xs font-medium bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 border border-orange-500/30 rounded-lg transition-all"
+        >
+          Reddit
         </button>
 
         <button

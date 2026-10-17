@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TextFix Pro - Интелигентен текстов помощник & Редактор онлайн",
-  description: "Безплатен онлайн текстов помощник и редактор. Броене на думи и символи, проверка на текст, коригиране на грешки и форматиране онлайн.",
-  keywords: [
-    "текстов редактор",
-    "брояч на думи",
-    "броене на символи",
-    "проверка на текст",
-    "текстов помощник",
-    "TextFix Pro"
-  ],
+  title: 'TextFix Pro - Интелигентен текстов помощник & Редактор',
+  description: 'Безплатен онлайн инструмент за почистване, форматиране, транслитерация и AI анализ на текст.',
+  openGraph: {
+    title: 'TextFix Pro - Интелигентен текстов помощник & Редактор',
+    description: 'Обработвайте текст, коригирайте правопис, правете резюмета и превеждайте мигновено.',
+    url: 'https://textfix-pro.vercel.app',
+    siteName: 'TextFix Pro',
+    locale: 'bg_BG',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
