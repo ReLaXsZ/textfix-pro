@@ -5,7 +5,25 @@ import { useState } from "react";
 export default function ShareButtons() {
   const [copied, setCopied] = useState(false);
   const shareUrl = "https://textfix-pro.vercel.app";
-  const shareTitle = "TextFix Pro - Интелигентен текстов помощник & Редактор онлайн";
+  const shareTitle = "TextFix Pro";
+  const shareText = "Вижте този страхотен интелигентен текстов редактор и помощник онлайн!";
+
+  // Родно системно споделяне (Web Share API) - отваря приложения/контакти на телефона (Messenger, Viber, Instagram и др.)
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.log("Споделянето бе отказано или затворено", err);
+      }
+    } else {
+      handleCopy();
+    }
+  };
 
   const handleCopy = async () => {
     try {
@@ -20,7 +38,7 @@ export default function ShareButtons() {
   const handleShare = (platform: string) => {
     let url = "";
     const encodedUrl = encodeURIComponent(shareUrl);
-    const encodedTitle = encodeURIComponent(shareTitle);
+    const encodedTitle = encodeURIComponent(`${shareTitle} - ${shareText}`);
 
     switch (platform) {
       case "facebook":
@@ -35,9 +53,6 @@ export default function ShareButtons() {
       case "whatsapp":
         url = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
         break;
-      case "viber":
-        url = `viber://forward?text=${encodedTitle}%20${encodedUrl}`;
-        break;
       default:
         return;
     }
@@ -47,19 +62,35 @@ export default function ShareButtons() {
 
   return (
     <div className="w-full max-w-4xl mx-auto my-6 p-4 bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 text-slate-300">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        <span>Харесва ви инструмента? Споделете го:</span>
-      </div>
+      {/* Кликащ бутон с иконката за системно споделяне (телефонни приложения) */}
+      <button
+        onClick={handleNativeShare}
+        className="flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-indigo-400 transition-colors group cursor-pointer"
+        title="Натиснете за бързо споделяне чрез браузъра"
+      >
+        <span className="p-2 bg-indigo-600/20 group-hover:bg-indigo-600/30 rounded-lg border border-indigo-500/30 transition-all">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+        </span>
+        <span>Споделете сайта:</span>
+      </button>
 
+      {/* Бързи бутони за социални мрежи */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Facebook */}
         <button
           onClick={() => handleShare("facebook")}
           className="px-3 py-1.5 text-xs font-medium bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-lg transition-all"
@@ -67,7 +98,6 @@ export default function ShareButtons() {
           Facebook
         </button>
 
-        {/* WhatsApp */}
         <button
           onClick={() => handleShare("whatsapp")}
           className="px-3 py-1.5 text-xs font-medium bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 rounded-lg transition-all"
@@ -75,7 +105,6 @@ export default function ShareButtons() {
           WhatsApp
         </button>
 
-        {/* LinkedIn */}
         <button
           onClick={() => handleShare("linkedin")}
           className="px-3 py-1.5 text-xs font-medium bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 rounded-lg transition-all"
@@ -83,7 +112,6 @@ export default function ShareButtons() {
           LinkedIn
         </button>
 
-        {/* X / Twitter */}
         <button
           onClick={() => handleShare("twitter")}
           className="px-3 py-1.5 text-xs font-medium bg-slate-700/30 hover:bg-slate-700/50 text-slate-300 border border-slate-600/30 rounded-lg transition-all"
@@ -91,7 +119,6 @@ export default function ShareButtons() {
           X (Twitter)
         </button>
 
-        {/* Copy Link */}
         <button
           onClick={handleCopy}
           className="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all flex items-center gap-1 shadow-sm"
