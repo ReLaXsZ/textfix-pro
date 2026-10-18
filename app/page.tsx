@@ -100,7 +100,6 @@ const translations = {
     buyCoffee: "☕ Кафе",
     lightTheme: "☀️ Светъл",
     darkTheme: "🌙 Тъмен",
-    // Съобщения
     fileTooLarge: "Файлът е твърде голям (макс. 10 MB).",
     fileLoaded: (name: string) => `Файлът "${name}" е зареден!`,
     wordFileLoading: "Зареждане на Word...",
@@ -256,7 +255,21 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
 }
 
 export default function Home() {
-  const [lang, setLang] = useState<Language>("bg");
+  // 1. Език: Зарежда от localStorage, после от браузъра, иначе английски
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window !== "undefined") {
+      const storedLang = localStorage.getItem("textfix_lang") as Language;
+      if (storedLang && ["bg", "en", "fr", "de"].includes(storedLang)) return storedLang;
+      
+      const browserLang = navigator.language.toLowerCase();
+      if (browserLang.startsWith("bg")) return "bg";
+      if (browserLang.startsWith("fr")) return "fr";
+      if (browserLang.startsWith("de")) return "de";
+      return "en"; // Default to English
+    }
+    return "bg"; // Fallback for server
+  });
+
   const [isLight, setIsLight] = useState(false);
   const [text, setText] = useState("");
   const [aiResult, setAiResult] = useState("");
@@ -289,26 +302,30 @@ export default function Home() {
 
   const t: Translation = translations[lang];
 
+  // 2. Load saved data on mount
   useEffect(() => {
     try {
       const storedHistory = localStorage.getItem("textfix_history");
       if (storedHistory) { const parsed = JSON.parse(storedHistory); if (Array.isArray(parsed)) setSavedHistory(parsed); }
       const storedTheme = localStorage.getItem("textfix_theme");
       if (storedTheme === "light" || storedTheme === "dark") setIsLight(storedTheme === "light");
-      const storedLang = localStorage.getItem("textfix_lang") as Language | null;
-      if (storedLang && ["bg", "en", "fr", "de"].includes(storedLang)) setLang(storedLang);
+      
+      // (Премахнат стар код за lang, защото вече се зарежда в useState)
     } catch (e) { console.error(e); }
   }, []);
 
+  // 3. Save Theme
   useEffect(() => {
     try { localStorage.setItem("textfix_theme", isLight ? "light" : "dark"); } catch (e) { console.error(e); }
     if (typeof document !== "undefined") document.documentElement.classList.toggle("dark", !isLight);
   }, [isLight]);
 
+  // 4. Save Language
   useEffect(() => {
     try { localStorage.setItem("textfix_lang", lang); } catch (e) { console.error(e); }
   }, [lang]);
 
+  // 5. Auto-save history
   useEffect(() => {
     if (!text.trim()) return;
     const timer = setTimeout(() => {
@@ -323,6 +340,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [text]);
 
+  // 6. Cleanup
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -343,7 +361,7 @@ export default function Home() {
     if (isSpeaking && typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel(); setIsSpeaking(false);
     }
-  }, [text]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [text]);
 
   const commitHistory = useCallback((newText: string) => {
     setHistory((prevHistory) => {
@@ -489,7 +507,7 @@ export default function Home() {
       setTypedAiResult((prev) => prev + fullText.charAt(i));
       i++;
       if (i >= fullText.length) { if (typingIntervalRef.current) clearInterval(typingIntervalRef.current); }
-    }, 10); // Speed of typing
+    }, 10);
   };
 
   const handleAiAction = async (actionType: string, customInst: string = "") => {
@@ -570,7 +588,6 @@ export default function Home() {
   const clearAll = () => { if (window.confirm(t.confirmClearAll)) updateText("", t.cleared); };
   const clearHistory = () => { if (window.confirm(t.confirmClearHistory)) { try { localStorage.removeItem("textfix_history"); } catch { } setSavedHistory([]); } };
 
-  // Re-check character count color
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
 
   return (
