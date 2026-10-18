@@ -6,6 +6,7 @@ import { Document, Packer, Paragraph, TextRun } from "docx";
 import { saveAs } from "file-saver";
 import mammoth from "mammoth";
 import { jsPDF } from "jspdf";
+import { diffWords, diffChars } from "diff";
 
 type Language = "bg" | "en" | "fr" | "de";
 
@@ -15,183 +16,16 @@ const SESSION_SAVE_DEBOUNCE_MS = 3000;
 
 const translations = {
   bg: {
-    title: "TextFix Pro",
-    subtitle: "Интелигентен текстов помощник & Редактор v2.2",
-    chars: "Символа",
-    noSpaces: "Без интервали",
-    words: "Думи",
-    lines: "Редове",
-    paragraphs: "Абзаци",
-    readTime: "Време за четене",
-    readability: "Трудност",
-    readTimeValue: (n: number) => `${n} мин`,
-    pasteBtn: "📋 Постави",
-    upload: "📁 Качете файл (.txt, .md, .json, .docx)",
-    uploadSub: "Поддържа автоматично извличане на текст от Word, Markdown и текстов формат (макс. 10 MB)",
-    undo: "↩️ Назад",
-    redo: "↪️ Напред",
-    copy: "📋 Копирай",
-    downloadTxt: "💾 .txt",
-    downloadDocx: "📄 .docx",
-    downloadPdf: "📕 .pdf",
-    placeholder: "Въведете или поставете вашия текст тук...",
-    aiTools: "🤖 Интелигентни AI инструменти",
-    aiSummary: "✨ AI Резюме",
-    aiFix: "📝 AI Граматика",
-    aiExpand: "🚀 AI Разшири",
-    aiShorten: "📉 AI Скъси",
-    aiSimplify: "🧸 AI Опрости",
-    aiElevate: "🎓 AI Повиши",
-    aiCustomPlaceholder: "Собствена инструкция (напр. 'Направи го като имейл до шефа')...",
-    aiCustomBtn: "Изпълни",
-    aiResultTitle: "🤖 Интелигентен резултат:",
-    copyResult: "📋 Копирай",
-    replaceText: "🔄 Замени",
-    closeResult: "❌ Затвори",
-    processing: "Обработва се...",
-    voiceInput: "🎤 Гласов вход",
-    voiceStop: "⏹️ Спри",
-    speakText: "🔊 Прочети",
-    speakStop: "🔇 Спри",
-    voiceListeningMsg: "🎙️ Записва активно... Говорете!",
-    voiceSpeakingMsg: "🔊 Прочитане...",
-    ttsSettings: "Настройки на гласа",
-    ttsRate: "Скорост",
-    ttsPitch: "Тон",
-    wordFreqTitle: "📊 Честота на думите:",
-    historyTitle: "💾 Запазени сесии:",
-    historyRestore: "Възстанови",
-    historyClear: "Изчисти",
-    markdownTitle: "✍️ Markdown:",
-    previewTitle: "👁️ Преглед",
-    editorTitle: "✏️ Редактор",
-    noTextPreview: "Няма въведен текст.",
-    searchReplace: "🔍 Търсене & Замяна",
-    findPlaceholder: "Търси...",
-    replacePlaceholder: "Замени с...",
-    replaceBtn: "Замени всички",
-    transEngine: "🌐 Превод",
-    engineLabel: "Услуга:",
-    transEn: "На Английски 🇬🇧",
-    transBg: "На Български 🇧🇬",
-    transDe: "На Немски 🇩🇪",
-    transFr: "На Френски 🇫🇷",
-    copyTranslation: "📋 Копирай само превода",
-    translit: "🔠 Транслитерация",
-    cyrToLat: "Кирилица ➔ Латиница",
-    latToCyr: "Латиница ➔ Кирилица",
-    tools: "🛠️ Почистване и Форматиране",
-    uppercase: "ГОЛЕМИ",
-    lowercase: "малки",
-    sentenceCase: "✏️ Изречение",
-    titleCase: "🔠 Заглавие",
-    slug: "🔗 Slug",
-    stripHtml: "🧹 HTML",
-    removeSpaces: "✂️ Интервали",
-    removeDuplicates: "🗑️ Дубликати",
-    removeEmpty: "📭 Празни редове",
-    sortLinesAsc: "🔤 Сортирай А-Я",
-    sortLinesDesc: "🔤 Сортирай Я-А",
-    clearAll: "Изчисти всичко",
-    proTools: "⚡ PRO Инструменти",
-    encodeBase64: "🔐 Base64 Кодирай",
-    decodeBase64: "🔓 Base64 Декодирай",
-    formatJSON: "📦 Форматирай JSON",
-    buyCoffee: "☕ Кафе",
-    lightTheme: "☀️ Светъл",
-    darkTheme: "🌙 Тъмен",
-    fileTooLarge: "Файлът е твърде голям (макс. 10 MB).",
-    fileLoaded: (name: string) => `Файлът "${name}" е зареден!`,
-    wordFileLoading: "Зареждане на Word...",
-    wordFileLoaded: "Word документът е зареден!",
-    wordFileFallback: "Текстът не можа да се извлече.",
-    wordLoadError: "Грешка при .docx.",
-    noTextToDownload: "Няма текст!",
-    noTextToCopy: "Няма текст за копиране!",
-    noTextToSpeak: "Няма текст за четене!",
-    noTextForAi: "Моля, въведете текст!",
-    noFindWord: "Въведете дума!",
-    noMatches: "Няма съвпадения.",
-    noTextToTranslate: "Няма текст за превод!",
-    aiError: "Грешка от асистента.",
-    aiConnectionError: "Грешка със сървъра.",
-    translateError: "Грешка с преводача.",
-    translateNoResult: "Опитайте друг преводач.",
-    invalidBase64: "Невалиден Base64.",
-    invalidJson: "Невалиден JSON.",
-    encodeError: "Грешка при кодиране.",
-    speechNotSupported: "Браузърът не поддържа глас.",
-    ttsNotSupported: "Браузърът не поддържа четене.",
-    microphoneDenied: "Разрешете микрофона.",
-    listeningError: "Грешка при микрофона.",
-    speaking: "Прочитане...",
-    speakingStopped: "Спряно.",
-    listeningStopped: "Спряно.",
-    micActive: "Микрофонът е активен!",
-    copied: "Копирано!",
-    copiedResult: "Резултатът е копиран!",
-    downloaded: "Изтеглено!",
-    replaced: (n: number) => `Заменени ${n} места!`,
-    resultReady: "Готово!",
-    mainTextReplaced: "Текстът е заменен!",
-    textRestored: "Възстановено!",
-    translitSuccess: "Успешна транслитерация!",
-    upperSuccess: "ГОЛЕМИ БУКВИ!",
-    lowerSuccess: "малки букви!",
-    sentenceSuccess: "Главни букви!",
-    titleSuccess: "Заглавия!",
-    slugSuccess: "Готов Slug!",
-    htmlStripped: "HTML премахнат!",
-    spacesRemoved: "Интервалите са изчистени!",
-    duplicatesRemoved: "Дубликатите са премахнати!",
-    emptyRemoved: "Празните редове са премахнати!",
-    sorted: "Сортирано!",
-    cleared: "Изчистено!",
-    encodeSuccess: "Base64 готово!",
-    decodeSuccess: "Base64 декодирано!",
-    jsonFormatted: "JSON форматиран!",
-    translating: "Превежда се...",
-    translationReady: "Преводът е готов!",
-    confirmClearHistory: "Сигурни ли сте, че искате да изчистите историята?",
-    confirmClearAll: "Сигурни ли сте, че искате да изчистите целия текст?",
-    tips: {
-      aiSummary: "Резюме на текста",
-      aiFix: "Коригира правопис и граматика",
-      aiExpand: "Разширява текста",
-      aiShorten: "Съкращава текста",
-      aiSimplify: "Опростява езика",
-      aiElevate: "Професионален стил",
-      voiceInput: "Диктуване с микрофон",
-      speakText: "Четене на глас",
-      toLatin: "Кирилица към латиница",
-      toCyrillic: "Латиница към кирилица",
-      uppercase: "Всички букви главни",
-      lowercase: "Всички букви малки",
-      sentenceCase: "Главна буква на изречение",
-      titleCase: "Главна буква на всяка дума",
-      slug: "URL адрес",
-      stripHtml: "Премахва HTML",
-      removeSpaces: "Маха излишни интервали",
-      removeDuplicateLines: "Маха дублиращи се редове",
-      removeEmptyLines: "Маха празни редове",
-      sortLinesAsc: "Сортира А-Я",
-      sortLinesDesc: "Сортира Я-А",
-      encodeBase64: "Base64 кодиране",
-      decodeBase64: "Base64 декодиране",
-      formatJSON: "Подрежда JSON",
-    },
+    title: "TextFix Pro", subtitle: "Интелигентен текстов помощник & Редактор v2.3", chars: "Символа", noSpaces: "Без интервали", words: "Думи", lines: "Редове", paragraphs: "Абзаци", readTime: "Време за четене", readability: "Трудност", readTimeValue: (n: number) => `${n} мин`, pasteBtn: "📋 Постави", upload: "📁 Качете файл (.txt, .md, .json, .docx)", uploadSub: "Поддържа автоматично извличане на текст от Word, Markdown и текстов формат (макс. 10 MB)", undo: "↩️ Назад", redo: "↪️ Напред", copy: "📋 Копирай", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Въведете или поставете вашия текст тук...", aiTools: "🤖 Интелигентни AI инструменти", aiSummary: "✨ AI Резюме", aiFix: "📝 AI Граматика", aiExpand: "🚀 AI Разшири", aiShorten: "📉 AI Скъси", aiSimplify: "🧸 AI Опрости", aiElevate: "🎓 AI Повиши", aiCustomPlaceholder: "Собствена инструкция (напр. 'Направи го като имейл до шефа')...", aiCustomBtn: "Изпълни", aiResultTitle: "🤖 Интелигентен резултат:", copyResult: "📋 Копирай", replaceText: "🔄 Замени", closeResult: "❌ Затвори", processing: "Обработва се...", voiceInput: "🎤 Гласов вход", voiceStop: "⏹️ Спри", speakText: "🔊 Прочети", speakStop: "🔇 Спри", voiceListeningMsg: "🎙️ Записва активно... Говорете!", voiceSpeakingMsg: "🔊 Прочитане...", ttsSettings: "Настройки на гласа", ttsRate: "Скорост", ttsPitch: "Тон", wordFreqTitle: "📊 Честота на думите:", historyTitle: "💾 Запазени сесии:", historyRestore: "Възстанови", historyClear: "Изчисти", markdownTitle: "✍️ Markdown:", previewTitle: "👁️ Преглед", editorTitle: "✏️ Редактор", noTextPreview: "Няма въведен текст.", searchReplace: "🔍 Търсене & Замяна", findPlaceholder: "Търси...", replacePlaceholder: "Замени с...", replaceBtn: "Замени всички", transEngine: "🌐 Превод", engineLabel: "Услуга:", transEn: "На Английски 🇬🇧", transBg: "На Български 🇧🇬", transDe: "На Немски 🇩🇪", transFr: "На Френски 🇫🇷", copyTranslation: "📋 Копирай само превода", translit: "🔠 Транслитерация", cyrToLat: "Кирилица ➔ Латиница", latToCyr: "Латиница ➔ Кирилица", tools: "🛠️ Почистване и Форматиране", uppercase: "ГОЛЕМИ", lowercase: "малки", sentenceCase: "✏️ Изречение", titleCase: "🔠 Заглавие", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Интервали", removeDuplicates: "🗑️ Дубликати", removeEmpty: "📭 Празни редове", sortLinesAsc: "🔤 Сортирай А-Я", sortLinesDesc: "🔤 Сортирай Я-А", clearAll: "Изчисти всичко", proTools: "⚡ PRO Инструменти", encodeBase64: "🔐 Base64 Кодирай", decodeBase64: "🔓 Base64 Декодирай", formatJSON: "📦 Форматирай JSON", buyCoffee: "☕ Кафе", lightTheme: "☀️ Светъл", darkTheme: "🌙 Тъмен", fileTooLarge: "Файлът е твърде голям (макс. 10 MB).", fileLoaded: (name: string) => `Файлът "${name}" е зареден!`, wordFileLoading: "Зареждане на Word...", wordFileLoaded: "Word документът е зареден!", wordFileFallback: "Текстът не можа да се извлече.", wordLoadError: "Грешка при .docx.", noTextToDownload: "Няма текст!", noTextToCopy: "Няма текст за копиране!", noTextToSpeak: "Няма текст за четене!", noTextForAi: "Моля, въведете текст!", noFindWord: "Въведете дума!", noMatches: "Няма съвпадения.", noTextToTranslate: "Няма текст за превод!", aiError: "Грешка от асистента.", aiConnectionError: "Грешка със сървъра.", translateError: "Грешка с преводача.", translateNoResult: "Опитайте друг преводач.", invalidBase64: "Невалиден Base64.", invalidJson: "Невалиден JSON.", encodeError: "Грешка при кодиране.", speechNotSupported: "Браузърът не поддържа глас.", ttsNotSupported: "Браузърът не поддържа четене.", microphoneDenied: "Разрешете микрофона.", listeningError: "Грешка при микрофона.", speaking: "Прочитане...", speakingStopped: "Спряно.", listeningStopped: "Спряно.", micActive: "Микрофонът е активен!", copied: "Копирано!", copiedResult: "Резултатът е копиран!", downloaded: "Изтеглено!", replaced: (n: number) => `Заменени ${n} места!`, resultReady: "Готово!", mainTextReplaced: "Текстът е заменен!", textRestored: "Възстановено!", translitSuccess: "Успешна транслитерация!", upperSuccess: "ГОЛЕМИ БУКВИ!", lowerSuccess: "малки букви!", sentenceSuccess: "Главни букви!", titleSuccess: "Заглавия!", slugSuccess: "Готов Slug!", htmlStripped: "HTML премахнат!", spacesRemoved: "Интервалите са изчистени!", duplicatesRemoved: "Дубликатите са премахнати!", emptyRemoved: "Празните редове са премахнати!", sorted: "Сортирано!", cleared: "Изчистено!", encodeSuccess: "Base64 готово!", decodeSuccess: "Base64 декодирано!", jsonFormatted: "JSON форматиран!", translating: "Превежда се...", translationReady: "Преводът е готов!", confirmClearHistory: "Сигурни ли сте, че искате да изчистите историята?", confirmClearAll: "Сигурни ли сте, че искате да изчистите целия текст?", compareTitle: "🔍 Text Compare (Сравнение)", compareOriginal: "Оригинален текст (преди)", compareNew: "Нов текст (за сравнение)", compareResult: "Резултат от сравнението:", compareEmpty: "Тук ще се покаже резултатът...", compareAdded: "Нови думи", compareRemoved: "Премахнати думи", compareClose: "Затвори", compareCase: "Главни/малки букви", compareWords: "Думи", compareChars: "Символи", tips: { aiSummary: "Резюме на текста", aiFix: "Коригира правопис и граматика", aiExpand: "Разширява текста", aiShorten: "Съкращава текста", aiSimplify: "Опростява езика", aiElevate: "Професионален стил", voiceInput: "Диктуване с микрофон", speakText: "Четене на глас", toLatin: "Кирилица към латиница", toCyrillic: "Латиница към кирилица", uppercase: "Всички букви главни", lowercase: "Всички букви малки", sentenceCase: "Главна буква на изречение", titleCase: "Главна буква на всяка дума", slug: "URL адрес", stripHtml: "Премахва HTML", removeSpaces: "Маха излишни интервали", removeDuplicateLines: "Маха дублиращи се редове", removeEmptyLines: "Маха празни редове", sortLinesAsc: "Сортира А-Я", sortLinesDesc: "Сортира Я-А", encodeBase64: "Base64 кодиране", decodeBase64: "Base64 декодиране", formatJSON: "Подрежда JSON" }
   },
   en: {
-    title: "TextFix Pro", subtitle: "Intelligent Text Assistant v2.2", chars: "Characters", noSpaces: "No spaces", words: "Words", lines: "Lines", paragraphs: "Paragraphs", readTime: "Read time", readability: "Readability", readTimeValue: (n: number) => `${n} min`, pasteBtn: "📋 Paste", upload: "📁 Upload file (.txt, .md, .json, .docx)", uploadSub: "Supports text extraction from Word, Markdown, and plain text files (max 10 MB)", undo: "↩️ Undo", redo: "↪️ Redo", copy: "📋 Copy", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Type or paste your text here...", aiTools: "🤖 AI Tools", aiSummary: "✨ AI Summary", aiFix: "📝 AI Fix Grammar", aiExpand: "🚀 AI Expand", aiShorten: "📉 AI Shorten", aiSimplify: "🧸 AI Simplify", aiElevate: "🎓 AI Elevate", aiCustomPlaceholder: "Custom instruction (e.g. 'Make it an email to my boss')...", aiCustomBtn: "Run", aiResultTitle: "🤖 Result:", copyResult: "📋 Copy", replaceText: "🔄 Replace", closeResult: "❌ Close", processing: "Processing...", voiceInput: "🎤 Voice Input", voiceStop: "⏹️ Stop", speakText: "🔊 Read Aloud", speakStop: "🔇 Stop", voiceListeningMsg: "🎙️ Recording active...", voiceSpeakingMsg: "🔊 Reading...", ttsSettings: "Voice Settings", ttsRate: "Rate", ttsPitch: "Pitch", wordFreqTitle: "📊 Word Frequency:", historyTitle: "💾 Saved Sessions:", historyRestore: "Restore", historyClear: "Clear", markdownTitle: "✍️ Markdown:", previewTitle: "👁️ Preview", editorTitle: "✏️ Editor", noTextPreview: "No text to preview.", searchReplace: "🔍 Search & Replace", findPlaceholder: "Find...", replacePlaceholder: "Replace with...", replaceBtn: "Replace All", transEngine: "🌐 Translation", engineLabel: "Service:", transEn: "To English 🇬🇧", transBg: "To Bulgarian 🇧🇬", transDe: "To German 🇩🇪", transFr: "To French 🇫🇷", copyTranslation: "📋 Copy translation", translit: "🔠 Transliteration", cyrToLat: "Cyrillic ➔ Latin", latToCyr: "Latin ➔ Cyrillic", tools: "🛠️ Cleaning & Formatting", uppercase: "UPPERCASE", lowercase: "lowercase", sentenceCase: "✏️ Sentence", titleCase: "🔠 Title Case", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Spaces", removeDuplicates: "🗑️ Duplicates", removeEmpty: "📭 Empty lines", sortLinesAsc: "🔤 Sort A-Z", sortLinesDesc: "🔤 Sort Z-A", clearAll: "Clear All", proTools: "⚡ PRO Tools", encodeBase64: "🔐 Base64 Encode", decodeBase64: "🔓 Base64 Decode", formatJSON: "📦 Format JSON", buyCoffee: "☕ Coffee", lightTheme: "☀️ Light", darkTheme: "🌙 Dark",
-    fileTooLarge: "File too large (max 10 MB).", fileLoaded: (name: string) => `File "${name}" loaded!`, wordFileLoading: "Loading Word...", wordFileLoaded: "Word loaded!", wordFileFallback: "Text could not be extracted.", wordLoadError: "Error reading .docx.", noTextToDownload: "No text!", noTextToCopy: "No text to copy!", noTextToSpeak: "No text to read!", noTextForAi: "Enter text!", noFindWord: "Enter a word!", noMatches: "No matches.", noTextToTranslate: "No text to translate!", aiError: "AI error.", aiConnectionError: "Server error.", translateError: "Translator error.", translateNoResult: "Try another translator.", invalidBase64: "Invalid Base64.", invalidJson: "Invalid JSON.", encodeError: "Encoding error.", speechNotSupported: "Voice not supported.", ttsNotSupported: "TTS not supported.", microphoneDenied: "Allow microphone.", listeningError: "Mic error.", speaking: "Reading...", speakingStopped: "Stopped.", listeningStopped: "Stopped.", micActive: "Mic active!", copied: "Copied!", copiedResult: "Result copied!", downloaded: "Downloaded!", replaced: (n: number) => `Replaced ${n}!`, resultReady: "Done!", mainTextReplaced: "Text replaced!", textRestored: "Restored!", translitSuccess: "Transliterated!", upperSuccess: "UPPERCASE!", lowerSuccess: "lowercase!", sentenceSuccess: "Sentence case!", titleSuccess: "Title case!", slugSuccess: "Slug created!", htmlStripped: "HTML stripped!", spacesRemoved: "Spaces removed!", duplicatesRemoved: "Duplicates removed!", emptyRemoved: "Empty lines removed!", sorted: "Sorted!", cleared: "Cleared!", encodeSuccess: "Base64 done!", decodeSuccess: "Base64 decoded!", jsonFormatted: "JSON formatted!", translating: "Translating...", translationReady: "Translation ready!", confirmClearHistory: "Are you sure you want to clear history?", confirmClearAll: "Are you sure you want to clear all text?", tips: { aiSummary: "Summarizes text", aiFix: "Fixes grammar", aiExpand: "Expands text", aiShorten: "Shortens text", aiSimplify: "Simplifies language", aiElevate: "Professional style", voiceInput: "Dictate with mic", speakText: "Read aloud", toLatin: "Cyrillic to Latin", toCyrillic: "Latin to Cyrillic", uppercase: "All uppercase", lowercase: "All lowercase", sentenceCase: "Capitalize sentences", titleCase: "Capitalize words", slug: "URL slug", stripHtml: "Remove HTML", removeSpaces: "Remove extra spaces", removeDuplicateLines: "Remove duplicates", removeEmptyLines: "Remove empty lines", sortLinesAsc: "Sort A-Z", sortLinesDesc: "Sort Z-A", encodeBase64: "Base64 encode", decodeBase64: "Base64 decode", formatJSON: "Format JSON" }
+    title: "TextFix Pro", subtitle: "Intelligent Text Assistant v2.3", chars: "Characters", noSpaces: "No spaces", words: "Words", lines: "Lines", paragraphs: "Paragraphs", readTime: "Read time", readability: "Readability", readTimeValue: (n: number) => `${n} min`, pasteBtn: "📋 Paste", upload: "📁 Upload file (.txt, .md, .json, .docx)", uploadSub: "Supports text extraction from Word, Markdown, and plain text files (max 10 MB)", undo: "↩️ Undo", redo: "↪️ Redo", copy: "📋 Copy", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Type or paste your text here...", aiTools: "🤖 AI Tools", aiSummary: "✨ AI Summary", aiFix: "📝 AI Fix Grammar", aiExpand: "🚀 AI Expand", aiShorten: "📉 AI Shorten", aiSimplify: "🧸 AI Simplify", aiElevate: "🎓 AI Elevate", aiCustomPlaceholder: "Custom instruction (e.g. 'Make it an email to my boss')...", aiCustomBtn: "Run", aiResultTitle: "🤖 Result:", copyResult: "📋 Copy", replaceText: "🔄 Replace", closeResult: "❌ Close", processing: "Processing...", voiceInput: "🎤 Voice Input", voiceStop: "⏹️ Stop", speakText: "🔊 Read Aloud", speakStop: "🔇 Stop", voiceListeningMsg: "🎙️ Recording active...", voiceSpeakingMsg: "🔊 Reading...", ttsSettings: "Voice Settings", ttsRate: "Rate", ttsPitch: "Pitch", wordFreqTitle: "📊 Word Frequency:", historyTitle: "💾 Saved Sessions:", historyRestore: "Restore", historyClear: "Clear", markdownTitle: "✍️ Markdown:", previewTitle: "👁️ Preview", editorTitle: "✏️ Editor", noTextPreview: "No text to preview.", searchReplace: "🔍 Search & Replace", findPlaceholder: "Find...", replacePlaceholder: "Replace with...", replaceBtn: "Replace All", transEngine: "🌐 Translation", engineLabel: "Service:", transEn: "To English 🇬🇧", transBg: "To Bulgarian 🇧🇬", transDe: "To German 🇩🇪", transFr: "To French 🇫🇷", copyTranslation: "📋 Copy translation", translit: "🔠 Transliteration", cyrToLat: "Cyrillic ➔ Latin", latToCyr: "Latin ➔ Cyrillic", tools: "🛠️ Cleaning & Formatting", uppercase: "UPPERCASE", lowercase: "lowercase", sentenceCase: "✏️ Sentence", titleCase: "🔠 Title Case", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Spaces", removeDuplicates: "🗑️ Duplicates", removeEmpty: "📭 Empty lines", sortLinesAsc: "🔤 Sort A-Z", sortLinesDesc: "🔤 Sort Z-A", clearAll: "Clear All", proTools: "⚡ PRO Tools", encodeBase64: "🔐 Base64 Encode", decodeBase64: "🔓 Base64 Decode", formatJSON: "📦 Format JSON", buyCoffee: "☕ Coffee", lightTheme: "☀️ Light", darkTheme: "🌙 Dark", fileTooLarge: "File too large (max 10 MB).", fileLoaded: (name: string) => `File "${name}" loaded!`, wordFileLoading: "Loading Word...", wordFileLoaded: "Word loaded!", wordFileFallback: "Text could not be extracted.", wordLoadError: "Error reading .docx.", noTextToDownload: "No text!", noTextToCopy: "No text to copy!", noTextToSpeak: "No text to read!", noTextForAi: "Enter text!", noFindWord: "Enter a word!", noMatches: "No matches.", noTextToTranslate: "No text to translate!", aiError: "AI error.", aiConnectionError: "Server error.", translateError: "Translator error.", translateNoResult: "Try another translator.", invalidBase64: "Invalid Base64.", invalidJson: "Invalid JSON.", encodeError: "Encoding error.", speechNotSupported: "Voice not supported.", ttsNotSupported: "TTS not supported.", microphoneDenied: "Allow microphone.", listeningError: "Mic error.", speaking: "Reading...", speakingStopped: "Stopped.", listeningStopped: "Stopped.", micActive: "Mic active!", copied: "Copied!", copiedResult: "Result copied!", downloaded: "Downloaded!", replaced: (n: number) => `Replaced ${n}!`, resultReady: "Done!", mainTextReplaced: "Text replaced!", textRestored: "Restored!", translitSuccess: "Transliterated!", upperSuccess: "UPPERCASE!", lowerSuccess: "lowercase!", sentenceSuccess: "Sentence case!", titleSuccess: "Title case!", slugSuccess: "Slug created!", htmlStripped: "HTML stripped!", spacesRemoved: "Spaces removed!", duplicatesRemoved: "Duplicates removed!", emptyRemoved: "Empty lines removed!", sorted: "Sorted!", cleared: "Cleared!", encodeSuccess: "Base64 done!", decodeSuccess: "Base64 decoded!", jsonFormatted: "JSON formatted!", translating: "Translating...", translationReady: "Translation ready!", confirmClearHistory: "Are you sure you want to clear history?", confirmClearAll: "Are you sure you want to clear all text?", compareTitle: "🔍 Text Compare", compareOriginal: "Original text", compareNew: "New text to compare", compareResult: "Comparison result:", compareEmpty: "Result will appear here...", compareAdded: "New words", compareRemoved: "Removed words", compareClose: "Close", compareCase: "Case sensitive", compareWords: "Words", compareChars: "Characters", tips: { aiSummary: "Summarizes text", aiFix: "Fixes grammar", aiExpand: "Expands text", aiShorten: "Shortens text", aiSimplify: "Simplifies language", aiElevate: "Professional style", voiceInput: "Dictate with mic", speakText: "Read aloud", toLatin: "Cyrillic to Latin", toCyrillic: "Latin to Cyrillic", uppercase: "All uppercase", lowercase: "All lowercase", sentenceCase: "Capitalize sentences", titleCase: "Capitalize words", slug: "URL slug", stripHtml: "Remove HTML", removeSpaces: "Remove extra spaces", removeDuplicateLines: "Remove duplicates", removeEmptyLines: "Remove empty lines", sortLinesAsc: "Sort A-Z", sortLinesDesc: "Sort Z-A", encodeBase64: "Base64 encode", decodeBase64: "Base64 decode", formatJSON: "Format JSON" }
   },
   fr: {
-    title: "TextFix Pro", subtitle: "Assistant textuel intelligent v2.2", chars: "Caractères", noSpaces: "Sans espaces", words: "Mots", lines: "Lignes", paragraphs: "Paragraphes", readTime: "Temps de lecture", readability: "Lisibilité", readTimeValue: (n: number) => `${n} min`, pasteBtn: "📋 Coller", upload: "📁 Charger un fichier (.txt, .md, .json, .docx)", uploadSub: "Extraction automatique de texte Word, Markdown et fichier texte (max 10 Mo)", undo: "↩️ Annuler", redo: "↪️ Rétablir", copy: "📋 Copier", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Saisissez ou collez votre texte ici...", aiTools: "🤖 Outils IA", aiSummary: "✨ Résumé IA", aiFix: "📝 Corriger la grammaire", aiExpand: "🚀 Développer", aiShorten: "📉 Raccourcir", aiSimplify: "🧸 Simplifier", aiElevate: "🎓 Élever le style", aiCustomPlaceholder: "Instruction personnalisée (ex. 'Fais-en un email pour mon patron')...", aiCustomBtn: "Exécuter", aiResultTitle: "🤖 Résultat :", copyResult: "📋 Copier", replaceText: "🔄 Remplacer", closeResult: "❌ Fermer", processing: "Traitement...", voiceInput: "🎤 Saisie vocale", voiceStop: "⏹️ Arrêter", speakText: "🔊 Lire à haute voix", speakStop: "🔇 Arrêter", voiceListeningMsg: "🎙️ Enregistrement...", voiceSpeakingMsg: "🔊 Lecture...", ttsSettings: "Paramètres vocaux", ttsRate: "Vitesse", ttsPitch: "Tonalité", wordFreqTitle: "📊 Fréquence des mots :", historyTitle: "💾 Historique :", historyRestore: "Restaurer", historyClear: "Effacer", markdownTitle: "✍️ Markdown :", previewTitle: "👁️ Aperçu", editorTitle: "✏️ Éditeur", noTextPreview: "Aucun texte.", searchReplace: "🔍 Rechercher et Remplacer", findPlaceholder: "Rechercher...", replacePlaceholder: "Remplacer par...", replaceBtn: "Tout remplacer", transEngine: "🌐 Traduction", engineLabel: "Service :", transEn: "En Anglais 🇬🇧", transBg: "En Bulgare 🇧🇬", transDe: "En Allemand 🇩🇪", transFr: "En Français 🇫🇷", copyTranslation: "📋 Copier la traduction", translit: "🔠 Translittération", cyrToLat: "Cyrillique ➔ Latin", latToCyr: "Latin ➔ Cyrillique", tools: "🛠️ Nettoyage & Formatage", uppercase: "MAJUSCULES", lowercase: "minuscules", sentenceCase: "✏️ Phrase", titleCase: "🔠 Titre", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Espaces", removeDuplicates: "🗑️ Doublons", removeEmpty: "📭 Lignes vides", sortLinesAsc: "🔤 Trier A-Z", sortLinesDesc: "🔤 Trier Z-A", clearAll: "Tout effacer", proTools: "⚡ Outils PRO", encodeBase64: "🔐 Encodage Base64", decodeBase64: "🔓 Décodage Base64", formatJSON: "📦 Formater JSON", buyCoffee: "☕ Café", lightTheme: "☀️ Clair", darkTheme: "🌙 Sombre",
-    fileTooLarge: "Fichier trop volumineux (max 10 Mo).", fileLoaded: (name: string) => `Fichier "${name}" chargé !`, wordFileLoading: "Chargement...", wordFileLoaded: "Document chargé !", wordFileFallback: "Texte non extrait.", wordLoadError: "Erreur .docx.", noTextToDownload: "Aucun texte !", noTextToCopy: "Aucun texte à copier !", noTextToSpeak: "Aucun texte à lire !", noTextForAi: "Saisissez du texte !", noFindWord: "Saisissez un mot !", noMatches: "Aucune correspondance.", noTextToTranslate: "Aucun texte à traduire !", aiError: "Erreur IA.", aiConnectionError: "Erreur serveur.", translateError: "Erreur de traduction.", translateNoResult: "Essayez un autre traducteur.", invalidBase64: "Base64 invalide.", invalidJson: "JSON invalide.", encodeError: "Erreur d'encodage.", speechNotSupported: "Voix non supportée.", ttsNotSupported: "TTS non supporté.", microphoneDenied: "Autorisez le micro.", listeningError: "Erreur micro.", speaking: "Lecture...", speakingStopped: "Arrêté.", listeningStopped: "Arrêté.", micActive: "Micro actif !", copied: "Copié !", copiedResult: "Résultat copié !", downloaded: "Téléchargé !", replaced: (n: number) => `${n} remplacé(s) !`, resultReady: "Prêt !", mainTextReplaced: "Texte remplacé !", textRestored: "Restauré !", translitSuccess: "Translittéré !", upperSuccess: "MAJUSCULES !", lowerSuccess: "minuscules !", sentenceSuccess: "Phrase !", titleSuccess: "Titre !", slugSuccess: "Slug créé !", htmlStripped: "HTML supprimé !", spacesRemoved: "Espaces supprimés !", duplicatesRemoved: "Doublons supprimés !", emptyRemoved: "Lignes vides supprimées !", sorted: "Trié !", cleared: "Effacé !", encodeSuccess: "Base64 fait !", decodeSuccess: "Base64 décodé !", jsonFormatted: "JSON formaté !", translating: "Traduction...", translationReady: "Traduction prête !", confirmClearHistory: "Voulez-vous vraiment effacer l'historique ?", confirmClearAll: "Voulez-vous vraiment tout effacer ?", tips: { aiSummary: "Résume le texte", aiFix: "Corrige la grammaire", aiExpand: "Développe le texte", aiShorten: "Raccourcit le texte", aiSimplify: "Simplifie le langage", aiElevate: "Style professionnel", voiceInput: "Dicter via micro", speakText: "Lire à haute voix", toLatin: "Cyrillique en latin", toCyrillic: "Latin en cyrillique", uppercase: "Tout en majuscules", lowercase: "Tout en minuscules", sentenceCase: "Majuscule en début de phrase", titleCase: "Majuscule à chaque mot", slug: "Slug URL", stripHtml: "Supprime le HTML", removeSpaces: "Supprime les espaces", removeDuplicateLines: "Supprime les doublons", removeEmptyLines: "Supprime les lignes vides", sortLinesAsc: "Trier A-Z", sortLinesDesc: "Trier Z-A", encodeBase64: "Encodage Base64", decodeBase64: "Décodage Base64", formatJSON: "Formater JSON" }
+    title: "TextFix Pro", subtitle: "Assistant textuel intelligent v2.3", chars: "Caractères", noSpaces: "Sans espaces", words: "Mots", lines: "Lignes", paragraphs: "Paragraphes", readTime: "Temps de lecture", readability: "Lisibilité", readTimeValue: (n: number) => `${n} min`, pasteBtn: "📋 Coller", upload: "📁 Charger un fichier (.txt, .md, .json, .docx)", uploadSub: "Extraction automatique de texte Word, Markdown et fichier texte (max 10 Mo)", undo: "↩️ Annuler", redo: "↪️ Rétablir", copy: "📋 Copier", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Saisissez ou collez votre texte ici...", aiTools: "🤖 Outils IA", aiSummary: "✨ Résumé IA", aiFix: "📝 Corriger la grammaire", aiExpand: "🚀 Développer", aiShorten: "📉 Raccourcir", aiSimplify: "🧸 Simplifier", aiElevate: "🎓 Élever le style", aiCustomPlaceholder: "Instruction personnalisée (ex. 'Fais-en un email pour mon patron')...", aiCustomBtn: "Exécuter", aiResultTitle: "🤖 Résultat :", copyResult: "📋 Copier", replaceText: "🔄 Remplacer", closeResult: "❌ Fermer", processing: "Traitement...", voiceInput: "🎤 Saisie vocale", voiceStop: "⏹️ Arrêter", speakText: "🔊 Lire à haute voix", speakStop: "🔇 Arrêter", voiceListeningMsg: "🎙️ Enregistrement...", voiceSpeakingMsg: "🔊 Lecture...", ttsSettings: "Paramètres vocaux", ttsRate: "Vitesse", ttsPitch: "Tonalité", wordFreqTitle: "📊 Fréquence des mots :", historyTitle: "💾 Historique :", historyRestore: "Restaurer", historyClear: "Effacer", markdownTitle: "✍️ Markdown :", previewTitle: "👁️ Aperçu", editorTitle: "✏️ Éditeur", noTextPreview: "Aucun texte.", searchReplace: "🔍 Rechercher et Remplacer", findPlaceholder: "Rechercher...", replacePlaceholder: "Remplacer par...", replaceBtn: "Tout remplacer", transEngine: "🌐 Traduction", engineLabel: "Service :", transEn: "En Anglais 🇬🇧", transBg: "En Bulgare 🇧🇬", transDe: "En Allemand 🇩🇪", transFr: "En Français 🇫🇷", copyTranslation: "📋 Copier la traduction", translit: "🔠 Translittération", cyrToLat: "Cyrillique ➔ Latin", latToCyr: "Latin ➔ Cyrillique", tools: "🛠️ Nettoyage & Formatage", uppercase: "MAJUSCULES", lowercase: "minuscules", sentenceCase: "✏️ Phrase", titleCase: "🔠 Titre", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Espaces", removeDuplicates: "🗑️ Doublons", removeEmpty: "📭 Lignes vides", sortLinesAsc: "🔤 Trier A-Z", sortLinesDesc: "🔤 Trier Z-A", clearAll: "Tout effacer", proTools: "⚡ Outils PRO", encodeBase64: "🔐 Encodage Base64", decodeBase64: "🔓 Décodage Base64", formatJSON: "📦 Formater JSON", buyCoffee: "☕ Café", lightTheme: "☀️ Clair", darkTheme: "🌙 Sombre", fileTooLarge: "Fichier trop volumineux (max 10 Mo).", fileLoaded: (name: string) => `Fichier "${name}" chargé !`, wordFileLoading: "Chargement...", wordFileLoaded: "Document chargé !", wordFileFallback: "Texte non extrait.", wordLoadError: "Erreur .docx.", noTextToDownload: "Aucun texte !", noTextToCopy: "Aucun texte à copier !", noTextToSpeak: "Aucun texte à lire !", noTextForAi: "Saisissez du texte !", noFindWord: "Saisissez un mot !", noMatches: "Aucune correspondance.", noTextToTranslate: "Aucun texte à traduire !", aiError: "Erreur IA.", aiConnectionError: "Erreur serveur.", translateError: "Erreur de traduction.", translateNoResult: "Essayez un autre traducteur.", invalidBase64: "Base64 invalide.", invalidJson: "JSON invalide.", encodeError: "Erreur d'encodage.", speechNotSupported: "Voix non supportée.", ttsNotSupported: "TTS non supporté.", microphoneDenied: "Autorisez le micro.", listeningError: "Erreur micro.", speaking: "Lecture...", speakingStopped: "Arrêté.", listeningStopped: "Arrêté.", micActive: "Micro actif !", copied: "Copié !", copiedResult: "Résultat copié !", downloaded: "Téléchargé !", replaced: (n: number) => `${n} remplacé(s) !`, resultReady: "Prêt !", mainTextReplaced: "Texte remplacé !", textRestored: "Restauré !", translitSuccess: "Translittéré !", upperSuccess: "MAJUSCULES !", lowerSuccess: "minuscules !", sentenceSuccess: "Phrase !", titleSuccess: "Titre !", slugSuccess: "Slug créé !", htmlStripped: "HTML supprimé !", spacesRemoved: "Espaces supprimés !", duplicatesRemoved: "Doublons supprimés !", emptyRemoved: "Lignes vides supprimées !", sorted: "Trié !", cleared: "Effacé !", encodeSuccess: "Base64 fait !", decodeSuccess: "Base64 décodé !", jsonFormatted: "JSON formaté !", translating: "Traduction...", translationReady: "Traduction prête !", confirmClearHistory: "Voulez-vous vraiment effacer l'historique ?", confirmClearAll: "Voulez-vous vraiment tout effacer ?", compareTitle: "🔍 Comparaison de texte", compareOriginal: "Texte original", compareNew: "Nouveau texte", compareResult: "Résultat :", compareEmpty: "Le résultat apparaîtra ici...", compareAdded: "Nouveaux mots", compareRemoved: "Mots supprimés", compareClose: "Fermer", compareCase: "Sensible à la casse", compareWords: "Mots", compareChars: "Caractères", tips: { aiSummary: "Résume le texte", aiFix: "Corrige la grammaire", aiExpand: "Développe le texte", aiShorten: "Raccourcit le texte", aiSimplify: "Simplifie le langage", aiElevate: "Style professionnel", voiceInput: "Dicter via micro", speakText: "Lire à haute voix", toLatin: "Cyrillique en latin", toCyrillic: "Latin en cyrillique", uppercase: "Tout en majuscules", lowercase: "Tout en minuscules", sentenceCase: "Majuscule en début de phrase", titleCase: "Majuscule à chaque mot", slug: "Slug URL", stripHtml: "Supprime le HTML", removeSpaces: "Supprime les espaces", removeDuplicateLines: "Supprime les doublons", removeEmptyLines: "Supprime les lignes vides", sortLinesAsc: "Trier A-Z", sortLinesDesc: "Trier Z-A", encodeBase64: "Encodage Base64", decodeBase64: "Décodage Base64", formatJSON: "Formater JSON" }
   },
   de: {
-    title: "TextFix Pro", subtitle: "Intelligenter Textassistent v2.2", chars: "Zeichen", noSpaces: "Ohne Leerzeichen", words: "Wörter", lines: "Zeilen", paragraphs: "Absätze", readTime: "Lesezeit", readability: "Lesbarkeit", readTimeValue: (n: number) => `${n} Min.`, pasteBtn: "📋 Einfügen", upload: "📁 Datei hochladen (.txt, .md, .json, .docx)", uploadSub: "Automatische Textextraktion (max. 10 MB)", undo: "↩️ Rückgängig", redo: "↪️ Wiederholen", copy: "📋 Kopieren", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Geben Sie Ihren Text hier ein...", aiTools: "🤖 KI-Werkzeuge", aiSummary: "✨ KI Zusammenfassung", aiFix: "📝 KI Grammatik", aiExpand: "🚀 KI Erweitern", aiShorten: "📉 KI Kürzen", aiSimplify: "🧸 KI Vereinfachen", aiElevate: "🎓 KI Niveau erhöhen", aiCustomPlaceholder: "Eigene Anweisung (z.B. 'Mach eine E-Mail an meinen Chef daraus')...", aiCustomBtn: "Ausführen", aiResultTitle: "🤖 Ergebnis:", copyResult: "📋 Kopieren", replaceText: "🔄 Ersetzen", closeResult: "❌ Schließen", processing: "Verarbeitung...", voiceInput: "🎤 Spracheingabe", voiceStop: "⏹️ Stopp", speakText: "🔊 Vorlesen", speakStop: "🔇 Stopp", voiceListeningMsg: "🎙️ Aufnahme...", voiceSpeakingMsg: "🔊 Vorlesen...", ttsSettings: "Spracheinstellungen", ttsRate: "Geschwindigkeit", ttsPitch: "Tonhöhe", wordFreqTitle: "📊 Worthäufigkeit:", historyTitle: "💾 Verlauf:", historyRestore: "Wiederherstellen", historyClear: "Löschen", markdownTitle: "✍️ Markdown:", previewTitle: "👁️ Vorschau", editorTitle: "✏️ Editor", noTextPreview: "Kein Text.", searchReplace: "🔍 Suchen & Ersetzen", findPlaceholder: "Suchen...", replacePlaceholder: "Ersetzen durch...", replaceBtn: "Alle ersetzen", transEngine: "🌐 Übersetzung", engineLabel: "Dienst:", transEn: "Ins Englische 🇬🇧", transBg: "Ins Bulgarische 🇧🇬", transDe: "Ins Deutsche 🇩🇪", transFr: "Ins Französische 🇫🇷", copyTranslation: "📋 Übersetzung kopieren", translit: "🔠 Transliteration", cyrToLat: "Kyrillisch ➔ Lateinisch", latToCyr: "Lateinisch ➔ Kyrillisch", tools: "🛠️ Bereinigung & Formatierung", uppercase: "GROSSBUCHSTABEN", lowercase: "kleinbuchstaben", sentenceCase: "✏️ Satzanfang groß", titleCase: "🔠 Wortanfänge Groß", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Leerzeichen", removeDuplicates: "🗑️ Duplikate", removeEmpty: "📭 Leere Zeilen", sortLinesAsc: "🔤 Sortieren A-Z", sortLinesDesc: "🔤 Sortieren Z-A", clearAll: "Alles löschen", proTools: "⚡ PRO Werkzeuge", encodeBase64: "🔐 Base64 Kodieren", decodeBase64: "🔓 Base64 Dekodieren", formatJSON: "📦 JSON Formatieren", buyCoffee: "☕ Kaffee", lightTheme: "☀️ Hell", darkTheme: "🌙 Dunkel",
-    fileTooLarge: "Datei zu groß (max. 10 MB).", fileLoaded: (name: string) => `Datei "${name}" geladen!`, wordFileLoading: "Word wird geladen...", wordFileLoaded: "Word geladen!", wordFileFallback: "Text konnte nicht extrahiert werden.", wordLoadError: "Fehler beim Lesen der .docx.", noTextToDownload: "Kein Text!", noTextToCopy: "Kein Text zum Kopieren!", noTextToSpeak: "Kein Text zum Vorlesen!", noTextForAi: "Text eingeben!", noFindWord: "Wort eingeben!", noMatches: "Keine Treffer.", noTextToTranslate: "Kein Text zum Übersetzen!", aiError: "KI-Fehler.", aiConnectionError: "Serverfehler.", translateError: "Übersetzungsfehler.", translateNoResult: "Versuchen Sie einen anderen Übersetzer.", invalidBase64: "Ungültiges Base64.", invalidJson: "Ungültiges JSON.", encodeError: "Kodierungsfehler.", speechNotSupported: "Spracheingabe nicht unterstützt.", ttsNotSupported: "Vorlesen nicht unterstützt.", microphoneDenied: "Mikrofon erlauben.", listeningError: "Mikrofonfehler.", speaking: "Vorlesen...", speakingStopped: "Gestoppt.", listeningStopped: "Gestoppt.", micActive: "Mikrofon aktiv!", copied: "Kopiert!", copiedResult: "Ergebnis kopiert!", downloaded: "Heruntergeladen!", replaced: (n: number) => `${n} ersetzt!`, resultReady: "Bereit!", mainTextReplaced: "Text ersetzt!", textRestored: "Wiederhergestellt!", translitSuccess: "Transliteriert!", upperSuccess: "GROSSBUCHSTABEN!", lowerSuccess: "kleinbuchstaben!", sentenceSuccess: "Satzanfang groß!", titleSuccess: "Wortanfänge groß!", slugSuccess: "Slug erstellt!", htmlStripped: "HTML entfernt!", spacesRemoved: "Leerzeichen entfernt!", duplicatesRemoved: "Duplikate entfernt!", emptyRemoved: "Leere Zeilen entfernt!", sorted: "Sortiert!", cleared: "Gelöscht!", encodeSuccess: "Base64 fertig!", decodeSuccess: "Base64 dekodiert!", jsonFormatted: "JSON formatiert!", translating: "Übersetzung...", translationReady: "Übersetzung fertig!", confirmClearHistory: "Verlauf wirklich löschen?", confirmClearAll: "Wirklich alles löschen?", tips: { aiSummary: "Fasst Text zusammen", aiFix: "Korrigiert Grammatik", aiExpand: "Erweitert Ideen", aiShorten: "Kürzt den Text", aiSimplify: "Vereinfacht die Sprache", aiElevate: "Professioneller Stil", voiceInput: "Diktieren", speakText: "Vorlesen", toLatin: "Kyrillisch zu Latein", toCyrillic: "Latein zu Kyrillisch", uppercase: "Alles groß", lowercase: "Alles klein", sentenceCase: "Satzanfang groß", titleCase: "Wortanfänge groß", slug: "URL-Slug", stripHtml: "Entfernt HTML", removeSpaces: "Entfernt Leerzeichen", removeDuplicateLines: "Entfernt Duplikate", removeEmptyLines: "Entfernt Leerzeilen", sortLinesAsc: "Sortieren A-Z", sortLinesDesc: "Sortieren Z-A", encodeBase64: "Base64 kodieren", decodeBase64: "Base64 dekodieren", formatJSON: "JSON formatieren" }
+    title: "TextFix Pro", subtitle: "Intelligenter Textassistent v2.3", chars: "Zeichen", noSpaces: "Ohne Leerzeichen", words: "Wörter", lines: "Zeilen", paragraphs: "Absätze", readTime: "Lesezeit", readability: "Lesbarkeit", readTimeValue: (n: number) => `${n} Min.`, pasteBtn: "📋 Einfügen", upload: "📁 Datei hochladen (.txt, .md, .json, .docx)", uploadSub: "Automatische Textextraktion (max. 10 MB)", undo: "↩️ Rückgängig", redo: "↪️ Wiederholen", copy: "📋 Kopieren", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Geben Sie Ihren Text hier ein...", aiTools: "🤖 KI-Werkzeuge", aiSummary: "✨ KI Zusammenfassung", aiFix: "📝 KI Grammatik", aiExpand: "🚀 KI Erweitern", aiShorten: "📉 KI Kürzen", aiSimplify: "🧸 KI Vereinfachen", aiElevate: "🎓 KI Niveau erhöhen", aiCustomPlaceholder: "Eigene Anweisung (z.B. 'Mach eine E-Mail an meinen Chef daraus')...", aiCustomBtn: "Ausführen", aiResultTitle: "🤖 Ergebnis:", copyResult: "📋 Kopieren", replaceText: "🔄 Ersetzen", closeResult: "❌ Schließen", processing: "Verarbeitung...", voiceInput: "🎤 Spracheingabe", voiceStop: "⏹️ Stopp", speakText: "🔊 Vorlesen", speakStop: "🔇 Stopp", voiceListeningMsg: "🎙️ Aufnahme...", voiceSpeakingMsg: "🔊 Vorlesen...", ttsSettings: "Spracheinstellungen", ttsRate: "Geschwindigkeit", ttsPitch: "Tonhöhe", wordFreqTitle: "📊 Worthäufigkeit:", historyTitle: "💾 Verlauf:", historyRestore: "Wiederherstellen", historyClear: "Löschen", markdownTitle: "✍️ Markdown:", previewTitle: "👁️ Vorschau", editorTitle: "✏️ Editor", noTextPreview: "Kein Text.", searchReplace: "🔍 Suchen & Ersetzen", findPlaceholder: "Suchen...", replacePlaceholder: "Ersetzen durch...", replaceBtn: "Alle ersetzen", transEngine: "🌐 Übersetzung", engineLabel: "Dienst:", transEn: "Ins Englische 🇬🇧", transBg: "Ins Bulgarische 🇧🇬", transDe: "Ins Deutsche 🇩🇪", transFr: "Ins Französische 🇫🇷", copyTranslation: "📋 Übersetzung kopieren", translit: "🔠 Transliteration", cyrToLat: "Kyrillisch ➔ Lateinisch", latToCyr: "Lateinisch ➔ Kyrillisch", tools: "🛠️ Bereinigung & Formatierung", uppercase: "GROSSBUCHSTABEN", lowercase: "kleinbuchstaben", sentenceCase: "✏️ Satzanfang groß", titleCase: "🔠 Wortanfänge Groß", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Leerzeichen", removeDuplicates: "🗑️ Duplikate", removeEmpty: "📭 Leere Zeilen", sortLinesAsc: "🔤 Sortieren A-Z", sortLinesDesc: "🔤 Sortieren Z-A", clearAll: "Alles löschen", proTools: "⚡ PRO Werkzeuge", encodeBase64: "🔐 Base64 Kodieren", decodeBase64: "🔓 Base64 Dekodieren", formatJSON: "📦 JSON Formatieren", buyCoffee: "☕ Kaffee", lightTheme: "☀️ Hell", darkTheme: "🌙 Dunkel", fileTooLarge: "Datei zu groß (max. 10 MB).", fileLoaded: (name: string) => `Datei "${name}" geladen!`, wordFileLoading: "Word wird geladen...", wordFileLoaded: "Word geladen!", wordFileFallback: "Text konnte nicht extrahiert werden.", wordLoadError: "Fehler beim Lesen der .docx.", noTextToDownload: "Kein Text!", noTextToCopy: "Kein Text zum Kopieren!", noTextToSpeak: "Kein Text zum Vorlesen!", noTextForAi: "Text eingeben!", noFindWord: "Wort eingeben!", noMatches: "Keine Treffer.", noTextToTranslate: "Kein Text zum Übersetzen!", aiError: "KI-Fehler.", aiConnectionError: "Serverfehler.", translateError: "Übersetzungsfehler.", translateNoResult: "Versuchen Sie einen anderen Übersetzer.", invalidBase64: "Ungültiges Base64.", invalidJson: "Ungültiges JSON.", encodeError: "Kodierungsfehler.", speechNotSupported: "Spracheingabe nicht unterstützt.", ttsNotSupported: "Vorlesen nicht unterstützt.", microphoneDenied: "Mikrofon erlauben.", listeningError: "Mikrofonfehler.", speaking: "Vorlesen...", speakingStopped: "Gestoppt.", listeningStopped: "Gestoppt.", micActive: "Mikrofon aktiv!", copied: "Kopiert!", copiedResult: "Ergebnis kopiert!", downloaded: "Heruntergeladen!", replaced: (n: number) => `${n} ersetzt!`, resultReady: "Bereit!", mainTextReplaced: "Text ersetzt!", textRestored: "Wiederhergestellt!", translitSuccess: "Transliteriert!", upperSuccess: "GROSSBUCHSTABEN!", lowerSuccess: "kleinbuchstaben!", sentenceSuccess: "Satzanfang groß!", titleSuccess: "Wortanfänge groß!", slugSuccess: "Slug erstellt!", htmlStripped: "HTML entfernt!", spacesRemoved: "Leerzeichen entfernt!", duplicatesRemoved: "Duplikate entfernt!", emptyRemoved: "Leere Zeilen entfernt!", sorted: "Sortiert!", cleared: "Gelöscht!", encodeSuccess: "Base64 fertig!", decodeSuccess: "Base64 dekodiert!", jsonFormatted: "JSON formatiert!", translating: "Übersetzung...", translationReady: "Übersetzung fertig!", confirmClearHistory: "Verlauf wirklich löschen?", confirmClearAll: "Wirklich alles löschen?", compareTitle: "🔍 Text Vergleich", compareOriginal: "Originaltext", compareNew: "Neuer Text", compareResult: "Ergebnis:", compareEmpty: "Ergebnis erscheint hier...", compareAdded: "Neue Wörter", compareRemoved: "Entfernte Wörter", compareClose: "Schließen", compareCase: "Groß-/Kleinschreibung", compareWords: "Wörter", compareChars: "Zeichen", tips: { aiSummary: "Fasst Text zusammen", aiFix: "Korrigiert Grammatik", aiExpand: "Erweitert Ideen", aiShorten: "Kürzt den Text", aiSimplify: "Vereinfacht die Sprache", aiElevate: "Professioneller Stil", voiceInput: "Diktieren", speakText: "Vorlesen", toLatin: "Kyrillisch zu Latein", toCyrillic: "Latein zu Kyrillisch", uppercase: "Alles groß", lowercase: "Alles klein", sentenceCase: "Satzanfang groß", titleCase: "Wortanfänge groß", slug: "URL-Slug", stripHtml: "Entfernt HTML", removeSpaces: "Entfernt Leerzeichen", removeDuplicateLines: "Entfernt Duplikate", removeEmptyLines: "Entfernt Leerzeilen", sortLinesAsc: "Sortieren A-Z", sortLinesDesc: "Sortieren Z-A", encodeBase64: "Base64 kodieren", decodeBase64: "Base64 dekodieren", formatJSON: "JSON formatieren" }
   },
 };
 
@@ -284,6 +118,12 @@ export default function Home() {
   const [savedHistory, setSavedHistory] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Text Compare states
+  const [showCompare, setShowCompare] = useState(false);
+  const [compareText, setCompareText] = useState("");
+  const [compareMode, setCompareMode] = useState<"words" | "chars">("words");
+  const [isCaseSensitive, setIsCaseSensitive] = useState(true);
+
   const [findVal, setFindVal] = useState("");
   const [replaceVal, setReplaceVal] = useState("");
   const [engine, setEngine] = useState("google");
@@ -302,38 +142,31 @@ export default function Home() {
 
   const t: Translation = translations[lang];
 
-  // 2. Load saved data on mount
+  // Load saved data
   useEffect(() => {
     try {
       const storedHistory = localStorage.getItem("textfix_history");
       if (storedHistory) { const parsed = JSON.parse(storedHistory); if (Array.isArray(parsed)) setSavedHistory(parsed); }
       const storedTheme = localStorage.getItem("textfix_theme");
       if (storedTheme === "light" || storedTheme === "dark") setIsLight(storedTheme === "light");
-      
-      // (Премахнат стар код за lang, защото вече се зарежда в useState)
     } catch (e) { console.error(e); }
   }, []);
 
-  // 3. Save Theme
+  // Theme & HTML lang attribute
   useEffect(() => {
     try { localStorage.setItem("textfix_theme", isLight ? "light" : "dark"); } catch (e) { console.error(e); }
-    if (typeof document !== "undefined") document.documentElement.classList.toggle("dark", !isLight);
-  }, [isLight]);
-
-  // 4. Save Language & Update HTML lang attribute
-  useEffect(() => {
-    try { 
-      localStorage.setItem("textfix_lang", lang); 
-      // Променяме езика на целия HTML документ за екранните четци!
-      if (typeof document !== "undefined") {
-        document.documentElement.lang = lang;
-      }
-    } catch (e) { 
-      console.error(e); 
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark", !isLight);
+      document.documentElement.lang = lang; // За екранните четци!
     }
+  }, [isLight, lang]);
+
+  // Save Language
+  useEffect(() => {
+    try { localStorage.setItem("textfix_lang", lang); } catch (e) { console.error(e); }
   }, [lang]);
 
-  // 5. Auto-save history
+  // Auto-save history
   useEffect(() => {
     if (!text.trim()) return;
     const timer = setTimeout(() => {
@@ -348,7 +181,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [text]);
 
-  // 6. Cleanup
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -608,46 +440,22 @@ export default function Home() {
             <h1 className={`text-3xl font-extrabold ${isLight ? "text-slate-900" : "text-slate-100"}`}>{t.title}</h1>
             <p className="text-xs md:text-sm text-slate-500">{t.subtitle}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 justify-center">
+          <div className="flex flex-wrap items-center gap-2">
             <div className={`flex p-1 rounded-lg border gap-1 ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
               {(["bg", "en", "fr", "de"] as const).map((l) => (
                 <button key={l} type="button" onClick={() => setLang(l)} className={`px-2.5 py-1 text-xs rounded-md font-bold transition-all flex items-center gap-1 ${lang === l ? "bg-blue-600 text-white" : "text-slate-500"}`}>
-                  <span className="text-sm">{l === "bg" ? "🇧🇬" : l === "en" ? "🇬🇧" : l === "fr" ? "🇫🇷" : "🇩🇪"}</span> <span className="hidden sm:inline">{l.toUpperCase()}</span>
+                  <span className="text-sm">{l === "bg" ? "🇧🇬" : l === "en" ? "🇬🇧" : l === "fr" ? "🇫🇷" : "🇩🇪"}</span> {l.toUpperCase()}
                 </button>
               ))}
             </div>
-            <a href="https://revolut.me/dimita_ga_klr4" target="_blank" rel="noreferrer" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow-sm">{t.buyCoffee}</a>
+            <a href="https://www.buymeacoffee.com" target="_blank" rel="noreferrer" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow-sm">{t.buyCoffee}</a>
             <button type="button" onClick={() => setIsLight(!isLight)} className={`text-xs px-3 py-2 rounded-lg transition-all border font-medium ${isLight ? "bg-white border-slate-300 text-slate-700 hover:bg-slate-100" : "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700"}`}>
               {isLight ? t.darkTheme : t.lightTheme}
             </button>
           </div>
         </header>
 
-        {/* 🔥 ТЕКСТОВА ПЛОЩ (Преместена най-горе) */}
-        <div className="space-y-2">
-          {!showPreview ? (
-            <textarea ref={textAreaRef} value={text} onChange={(e) => updateText(e.target.value, undefined, true)} placeholder={t.placeholder} className={`w-full h-48 p-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans text-sm resize-y transition-all ${isLight ? "bg-white text-slate-900 border-slate-300 shadow-sm" : "bg-slate-900/90 text-slate-100 border-slate-800"}`} />
-          ) : (
-            <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm font-sans whitespace-pre-wrap ${isLight ? "bg-white text-slate-900 border-slate-300" : "bg-slate-900 text-slate-100 border-slate-800"}`}>{text || t.noTextPreview}</div>
-          )}
-          
-          {/* Лента с инструменти под полето (Undo/Redo + Markdown + Преглед) */}
-          <div className={`p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`}>
-            <div className="flex items-center gap-1.5 border-r pr-3 border-slate-300 dark:border-slate-700">
-              <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase tracking-wider hidden sm:inline">↕</span>
-              <button type="button" onClick={undo} disabled={historyIndex <= 0} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border disabled:opacity-30 ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`}>{t.undo}</button>
-              <button type="button" onClick={redo} disabled={historyIndex >= history.length - 1} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border disabled:opacity-30 ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`}>{t.redo}</button>
-            </div>
-            <div className="flex items-center gap-1.5 flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
-              <span className="font-semibold text-slate-500 mr-1 hidden sm:inline">{t.markdownTitle}</span>
-              <button type="button" onClick={() => insertMarkdown("bold")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">B</button>
-              <button type="button" onClick={() => insertMarkdown("italic")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 italic rounded border border-slate-300 dark:border-slate-700">I</button>
-              <button type="button" onClick={() => insertMarkdown("h1")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">H1</button>
-              <button type="button" onClick={() => insertMarkdown("list")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded border border-slate-300 dark:border-slate-700">• List</button>
-            </div>
-            <button type="button" onClick={() => setShowPreview(!showPreview)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-sm">{showPreview ? t.editorTitle : t.previewTitle}</button>
-          </div>
-        </div>
+        <ShareButtons lang={lang} />
 
         {/* Статистика и Paste */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2 text-center">
@@ -676,6 +484,12 @@ export default function Home() {
           </div>
         </div>
 
+        <label className={`border-2 border-dashed p-4 rounded-xl text-center cursor-pointer block transition-all ${isLight ? "border-blue-300 bg-blue-50/50 hover:bg-blue-50 text-slate-700" : "border-blue-500/30 bg-blue-950/20 hover:bg-blue-950/40 text-slate-200"}`}>
+          <div className="text-xs md:text-sm font-semibold">{t.upload}</div>
+          <div className="text-[11px] text-slate-500 mt-1">{t.uploadSub}</div>
+          <input type="file" accept=".txt,.csv,.md,.html,.js,.json,.docx" onChange={handleFileUpload} className="hidden" />
+        </label>
+
         {/* Гласови и Експорт */}
         <div className="space-y-2">
           <div className="flex flex-wrap justify-between items-center text-xs gap-2">
@@ -692,7 +506,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="space-x-2 flex items-center flex-wrap gap-y-2">
+            <div className="space-x-2 flex items-center">
               <button type="button" onClick={copyText} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.copy}</button>
               <button type="button" onClick={downloadTxt} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.downloadTxt}</button>
               <button type="button" onClick={downloadDocx} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.downloadDocx}</button>
@@ -711,12 +525,96 @@ export default function Home() {
           )}
         </div>
 
-        {/* Качване на файл */}
-        <label className={`border-2 border-dashed p-4 rounded-xl text-center cursor-pointer block transition-all ${isLight ? "border-blue-300 bg-blue-50/50 hover:bg-blue-50 text-slate-700" : "border-blue-500/30 bg-blue-950/20 hover:bg-blue-950/40 text-slate-200"}`}>
-          <div className="text-xs md:text-sm font-semibold">{t.upload}</div>
-          <div className="text-[11px] text-slate-500 mt-1">{t.uploadSub}</div>
-          <input type="file" accept=".txt,.csv,.md,.html,.js,.json,.docx" onChange={handleFileUpload} className="hidden" />
-        </label>
+        {/* Undo/Redo + Markdown + Преглед + Сравнение */}
+        <div className={`p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`}>
+          <div className="flex items-center gap-1.5 border-r pr-3 border-slate-300 dark:border-slate-700">
+            <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase tracking-wider">↕</span>
+            <button type="button" onClick={undo} disabled={historyIndex <= 0} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border disabled:opacity-30 ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`}>{t.undo}</button>
+            <button type="button" onClick={redo} disabled={historyIndex >= history.length - 1} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border disabled:opacity-30 ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`}>{t.redo}</button>
+          </div>
+          <div className="flex items-center gap-1.5 flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
+            <span className="font-semibold text-slate-500 mr-1 hidden sm:inline">{t.markdownTitle}</span>
+            <button type="button" onClick={() => insertMarkdown("bold")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">B</button>
+            <button type="button" onClick={() => insertMarkdown("italic")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 italic rounded border border-slate-300 dark:border-slate-700">I</button>
+            <button type="button" onClick={() => insertMarkdown("h1")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">H1</button>
+            <button type="button" onClick={() => insertMarkdown("list")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded border border-slate-300 dark:border-slate-700">• List</button>
+          </div>
+          <div className="flex gap-1.5">
+            <button type="button" onClick={() => setShowCompare(!showCompare)} className={`px-3 py-1 rounded-lg font-semibold shadow-sm transition-all ${showCompare ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'}`}>
+              🔍 Сравни
+            </button>
+            <button type="button" onClick={() => setShowPreview(!showPreview)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-sm">{showPreview ? t.editorTitle : t.previewTitle}</button>
+          </div>
+        </div>
+
+        {/* Текстова площ / Сравнение */}
+        {showCompare ? (
+          <div className={`w-full rounded-xl border overflow-hidden ${isLight ? "bg-white border-slate-300 shadow-sm" : "bg-slate-900 border-slate-800 shadow-lg"}`}>
+            
+            <div className={`p-4 border-b flex flex-col sm:flex-row justify-between items-center gap-3 ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}>
+              <div className="flex items-center gap-3">
+                <span className={`text-sm font-bold ${isLight ? "text-slate-800" : "text-slate-100"}`}>{t.compareTitle}</span>
+                <button onClick={() => { setCompareText(""); }} className="text-amber-500 hover:text-amber-600 text-lg font-bold" title="Изчисти">↻</button>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-4 text-xs">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={isCaseSensitive} onChange={(e) => setIsCaseSensitive(e.target.checked)} className="w-3.5 h-3.5 accent-blue-600" />
+                  <span className={isLight ? "text-slate-600" : "text-slate-400"}>{t.compareCase}</span>
+                </label>
+                <div className={`flex p-0.5 rounded-lg border ${isLight ? "bg-slate-200 border-slate-300" : "bg-slate-800 border-slate-700"}`}>
+                  <button type="button" onClick={() => setCompareMode("words")} className={`px-2 py-1 rounded-md text-[10px] font-bold ${compareMode === "words" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500"}`}>{t.compareWords}</button>
+                  <button type="button" onClick={() => setCompareMode("chars")} className={`px-2 py-1 rounded-md text-[10px] font-bold ${compareMode === "chars" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500"}`}>{t.compareChars}</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border-b border-slate-200 dark:border-slate-800">
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider mb-1 block ${isLight ? "text-slate-500" : "text-slate-400"}`}>{t.compareOriginal}</label>
+                <textarea value={text} readOnly className={`w-full h-32 p-3 text-xs font-mono rounded-lg border ${isLight ? "bg-slate-50 border-slate-200 text-slate-600" : "bg-slate-950 border-slate-800 text-slate-400"}`} />
+              </div>
+              <div>
+                <label className={`text-[10px] font-bold uppercase tracking-wider mb-1 block ${isLight ? "text-slate-500" : "text-slate-400"}`}>{t.compareNew}</label>
+                <textarea value={compareText} onChange={(e) => setCompareText(e.target.value)} placeholder="Постави новия текст тук..." className={`w-full h-32 p-3 text-xs font-mono rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-500 ${isLight ? "bg-white border-slate-300 text-slate-900" : "bg-slate-900 border-slate-700 text-slate-100"}`} />
+              </div>
+            </div>
+
+            <div className={`p-4 ${isLight ? "bg-white" : "bg-slate-900"}`}>
+              <div className="flex justify-between items-center mb-3">
+                <span className={`text-xs font-bold ${isLight ? "text-slate-800" : "text-slate-200"}`}>{t.compareResult}</span>
+                <div className="flex gap-3 text-[10px] font-semibold">
+                  <span className="text-emerald-500">{t.compareAdded}: {diffWords(text, compareText).filter(p => p.added).reduce((acc, p) => acc + p.value.split(/\s+/).filter(w=>w).length, 0)}</span>
+                  <span className="text-rose-500">{t.compareRemoved}: {diffWords(text, compareText).filter(p => p.removed).reduce((acc, p) => acc + p.value.split(/\s+/).filter(w=>w).length, 0)}</span>
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-lg border text-sm leading-relaxed overflow-y-auto max-h-60 whitespace-pre-wrap ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}>
+                {compareText.trim() ? (
+                  (compareMode === "words" ? diffWords : diffChars)(text, compareText, { ignoreCase: !isCaseSensitive }).map((part, index) => (
+                    <span key={index} className={
+                      part.added ? "bg-emerald-200 text-emerald-900 font-medium px-1 rounded" :
+                      part.removed ? "bg-rose-200 text-rose-900 line-through px-1 rounded" : 
+                      isLight ? "text-slate-700" : "text-slate-300"
+                    }>
+                      {part.value}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-slate-400 italic text-xs">{t.compareEmpty}</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-3 text-center border-t border-slate-200 dark:border-slate-800">
+              <button onClick={() => setShowCompare(false)} className="text-xs text-rose-500 hover:underline font-semibold">{t.compareClose}</button>
+            </div>
+          </div>
+        ) : !showPreview ? (
+          <textarea ref={textAreaRef} value={text} onChange={(e) => updateText(e.target.value, undefined, true)} placeholder={t.placeholder} className={`w-full h-48 p-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans text-sm resize-y transition-all ${isLight ? "bg-white text-slate-900 border-slate-300 shadow-sm" : "bg-slate-900/90 text-slate-100 border-slate-800"}`} />
+        ) : (
+          <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm font-sans whitespace-pre-wrap ${isLight ? "bg-white text-slate-900 border-slate-300" : "bg-slate-900 text-slate-100 border-slate-800"}`}>{text || t.noTextPreview}</div>
+        )}
 
         {/* Честотен анализ */}
         {topWords.length > 0 && (
@@ -741,7 +639,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* AI Резултат (с Typewriter) */}
+        {/* AI Резултат */}
         {aiResult && (
           <div className={`p-4 rounded-xl space-y-3 border shadow-lg transition-all ${isLight ? "bg-blue-50/80 border-blue-200" : "bg-slate-900 border-slate-700"}`}>
             <div className="flex justify-between items-center">
@@ -757,9 +655,9 @@ export default function Home() {
         )}
 
         {/* AI Инструменти + Custom Prompt */}
-        <div className={`p-4 rounded-xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
+        <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             <TooltipButton onClick={() => handleAiAction("summary")} text={t.aiSummary} tip={t.tips.aiSummary} isAi isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("fix")} text={t.aiFix} tip={t.tips.aiFix} isAi isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("expand")} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
@@ -767,7 +665,7 @@ export default function Home() {
             <TooltipButton onClick={() => handleAiAction("simplify")} text={t.aiSimplify} tip={t.tips.aiSimplify} isAi isLoading={loadingAction === "simplify"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("elevate")} text={t.aiElevate} tip={t.tips.aiElevate} isAi isLoading={loadingAction === "elevate"} isLight={isLight} processingText={t.processing} />
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 mt-3 pt-3 border-t border-blue-200/50 dark:border-slate-700/50">
+          <div className="flex gap-2 mt-3 pt-3 border-t border-blue-200/50 dark:border-slate-700/50">
              <input type="text" placeholder={t.aiCustomPlaceholder} value={customPrompt} onChange={(e) => setCustomPrompt(e.target.value)} className={`flex-1 border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
              <button type="button" onClick={() => handleAiAction("custom", customPrompt)} disabled={!customPrompt || loadingAction === "custom"} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-sm disabled:opacity-50">{t.aiCustomBtn}</button>
           </div>
@@ -776,7 +674,7 @@ export default function Home() {
         {/* Търсене & Замяна */}
         <div className={`p-4 rounded-xl border space-y-2 ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}>
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.searchReplace}</div>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-wrap gap-2">
             <input type="text" placeholder={t.findPlaceholder} value={findVal} onChange={(e) => setFindVal(e.target.value)} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
             <input type="text" placeholder={t.replacePlaceholder} value={replaceVal} onChange={(e) => setReplaceVal(e.target.value)} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
             <button type="button" onClick={handleReplace} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm">{t.replaceBtn}</button>
@@ -810,10 +708,15 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Почистване */}
-        <div className="space-y-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.tools}</div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+        {/* Почистване (в падащо меню за по-чист дизайн) */}
+        <details className={`group border rounded-2xl transition-all ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`}>
+          <summary className="flex items-center justify-between p-4 cursor-pointer list-none">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t.tools}</div>
+            <span className="transition group-open:rotate-180 text-slate-400">
+              <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </summary>
+          <div className="p-4 pt-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             <TooltipButton onClick={makeBIG} text={t.uppercase} tip={t.tips.uppercase} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={makeSmall} text={t.lowercase} tip={t.tips.lowercase} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={capitalizeSentences} text={t.sentenceCase} tip={t.tips.sentenceCase} isLight={isLight} processingText={t.processing} />
@@ -825,30 +728,30 @@ export default function Home() {
             <TooltipButton onClick={removeEmptyLines} text={t.removeEmpty} tip={t.tips.removeEmptyLines} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={sortLinesAsc} text={t.sortLinesAsc} tip={t.tips.sortLinesAsc} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={sortLinesDesc} text={t.sortLinesDesc} tip={t.tips.sortLinesDesc} isLight={isLight} processingText={t.processing} />
-            <button type="button" onClick={clearAll} className={`border text-xs py-2 rounded-lg transition-all font-semibold ${isLight ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200" : "bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-800/60"}`}>{t.clearAll}</button>
+            <button type="button" onClick={clearAll} className={`border-0 text-xs py-2.5 rounded-lg transition-all font-semibold ${isLight ? "bg-rose-50 hover:bg-rose-100 text-rose-700" : "bg-rose-950/40 hover:bg-rose-900/60 text-rose-300"}`}>{t.clearAll}</button>
           </div>
-        </div>
+        </details>
 
-        {/* PRO Инструменти */}
-        <div className="space-y-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.proTools}</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {/* PRO Инструменти (в падащо меню) */}
+        <details className={`group border rounded-2xl transition-all ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900 border-slate-800"}`}>
+          <summary className="flex items-center justify-between p-4 cursor-pointer list-none">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t.proTools}</div>
+            <span className="transition group-open:rotate-180 text-slate-400">
+              <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </summary>
+          <div className="p-4 pt-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
             <TooltipButton onClick={encodeBase64} text={t.encodeBase64} tip={t.tips.encodeBase64} isPro isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={decodeBase64} text={t.decodeBase64} tip={t.tips.decodeBase64} isPro isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={formatJSON} text={t.formatJSON} tip={t.tips.formatJSON} isPro isLight={isLight} processingText={t.processing} />
           </div>
-        </div>
-
-        {/* Share Buttons (Преместени най-долу) */}
-        <div className="pt-6">
-          <ShareButtons lang={lang} />
-        </div>
+        </details>
 
         {/* Футър */}
         <footer className={`pt-8 border-t text-center text-xs text-slate-500 space-y-3 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
           <div>TextFix Pro &copy; 2026</div>
           <div>
-            <a href="https://revolut.me/dimita_ga_klr4" target="_blank" rel="noreferrer" className={`inline-block border px-4 py-2 rounded-full font-medium transition-all ${isLight ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100" : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20"}`}>{t.buyCoffee} ☕</a>
+            <a href="https://www.buymeacoffee.com" target="_blank" rel="noreferrer" className={`inline-block border px-4 py-2 rounded-full font-medium transition-all ${isLight ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100" : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20"}`}>{t.buyCoffee} ☕</a>
           </div>
         </footer>
       </div>
