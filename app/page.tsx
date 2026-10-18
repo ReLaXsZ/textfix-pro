@@ -255,7 +255,6 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
 }
 
 export default function Home() {
-  // 1. Език: Зарежда от localStorage, после от браузъра, иначе английски
   const [lang, setLang] = useState<Language>(() => {
     if (typeof window !== "undefined") {
       const storedLang = localStorage.getItem("textfix_lang") as Language;
@@ -265,9 +264,9 @@ export default function Home() {
       if (browserLang.startsWith("bg")) return "bg";
       if (browserLang.startsWith("fr")) return "fr";
       if (browserLang.startsWith("de")) return "de";
-      return "en"; // Default to English
+      return "en";
     }
-    return "bg"; // Fallback for server
+    return "bg";
   });
 
   const [isLight, setIsLight] = useState(false);
@@ -302,30 +301,31 @@ export default function Home() {
 
   const t: Translation = translations[lang];
 
-  // 2. Load saved data on mount
   useEffect(() => {
     try {
       const storedHistory = localStorage.getItem("textfix_history");
       if (storedHistory) { const parsed = JSON.parse(storedHistory); if (Array.isArray(parsed)) setSavedHistory(parsed); }
       const storedTheme = localStorage.getItem("textfix_theme");
       if (storedTheme === "light" || storedTheme === "dark") setIsLight(storedTheme === "light");
-      
-      // (Премахнат стар код за lang, защото вече се зарежда в useState)
     } catch (e) { console.error(e); }
   }, []);
 
-  // 3. Save Theme
   useEffect(() => {
     try { localStorage.setItem("textfix_theme", isLight ? "light" : "dark"); } catch (e) { console.error(e); }
     if (typeof document !== "undefined") document.documentElement.classList.toggle("dark", !isLight);
   }, [isLight]);
 
-  // 4. Save Language
   useEffect(() => {
-    try { localStorage.setItem("textfix_lang", lang); } catch (e) { console.error(e); }
+    try { 
+      localStorage.setItem("textfix_lang", lang); 
+      if (typeof document !== "undefined") {
+        document.documentElement.lang = lang;
+      }
+    } catch (e) { 
+      console.error(e); 
+    }
   }, [lang]);
 
-  // 5. Auto-save history
   useEffect(() => {
     if (!text.trim()) return;
     const timer = setTimeout(() => {
@@ -340,7 +340,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [text]);
 
-  // 6. Cleanup
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
