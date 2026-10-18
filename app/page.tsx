@@ -607,7 +607,7 @@ export default function Home() {
                 </button>
               ))}
             </div>
-            <a href="https://www.buymeacoffee.com" target="_blank" rel="noreferrer" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow-sm">{t.buyCoffee}</a>
+            <a href="https://revolut.me/dimita_ga_klr4" target="_blank" rel="noreferrer" className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg transition-all flex items-center gap-1 shadow-sm">{t.buyCoffee}</a>
             <button type="button" onClick={() => setIsLight(!isLight)} className={`text-xs px-3 py-2 rounded-lg transition-all border font-medium ${isLight ? "bg-white border-slate-300 text-slate-700 hover:bg-slate-100" : "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700"}`}>
               {isLight ? t.darkTheme : t.lightTheme}
             </button>
@@ -833,7 +833,7 @@ export default function Home() {
         <footer className={`pt-8 border-t text-center text-xs text-slate-500 space-y-3 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
           <div>TextFix Pro &copy; 2026</div>
           <div>
-            <a href="https://www.buymeacoffee.com" target="_blank" rel="noreferrer" className={`inline-block border px-4 py-2 rounded-full font-medium transition-all ${isLight ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100" : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20"}`}>{t.buyCoffee} ☕</a>
+            <a href="https://revolut.me/dimita_ga_klr4" target="_blank" rel="noreferrer" className={`inline-block border px-4 py-2 rounded-full font-medium transition-all ${isLight ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100" : "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/20"}`}>{t.buyCoffee} ☕</a>
           </div>
         </footer>
       </div>
