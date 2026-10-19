@@ -16,22 +16,6 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const HISTORY_DEBOUNCE_MS = 500;
 const SESSION_SAVE_DEBOUNCE_MS = 3000;
 
-function calculateReadability(text: string): number {
-  if (!text.trim()) return 0;
-  const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
-  const words = text.trim().split(/\s+/).length;
-  const syllables = text.toLowerCase().replace(/[^a-zа-яё]/g, "").replace(/[aeiouyаеиоуъюя]+/g, "a").length;
-  if (words === 0 || sentences === 0) return 0;
-  return Math.max(0, Math.min(100, 206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words)));
-}
-
-function getReadabilityLabel(score: number, lang: string): string {
-  if (score === 0) return "-";
-  const labels: Record<string, string[]> = { bg: ["Много труден", "Труден", "Среден", "Лесен", "Много лесен"], en: ["Very Hard", "Hard", "Medium", "Easy", "Very Easy"], fr: ["Très difficile", "Difficile", "Moyen", "Facile", "Très facile"], de: ["Sehr schwer", "Schwer", "Mittel", "Einfach", "Sehr einfach"], es: ["Muy difícil", "Difícil", "Medio", "Fácil", "Muy fácil"], tr: ["Çok zor", "Zor", "Orta", "Kolay", "Çok kolay"] };
-  const arr = labels[lang] || labels.en;
-  if (score < 30) return arr[0]; if (score < 50) return arr[1]; if (score < 60) return arr[2]; if (score < 80) return arr[3]; return arr[4];
-}
-
 function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoading = false, isLight, processingText }: any) {
   let btnStyle = isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : isPro ? (isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700") : (isLight ? "bg-white text-slate-700 border-slate-200" : "bg-slate-900 text-slate-200 border-slate-800");
   return (
@@ -168,11 +152,9 @@ export default function Home() {
     setHistoryIndex((prevIdx) => Math.min(history.slice(0, prevIdx + 1).length, 99));
   }, [history, historyIndex]);
 
-  // ТУК Е МАГИЯТА: При всяка промяна на текста, ние веднага обновяваме state-а за статистиките
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
-    setText(newText); // Това кара статистиките да се обновят моментално
-
+    setText(newText);
     if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
     historyDebounceRef.current = setTimeout(() => {
       commitHistory(newText);
@@ -193,7 +175,12 @@ export default function Home() {
   const wordCount = useMemo(() => (text.trim() === "" ? 0 : text.trim().split(/\s+/).length), [text]);
   const lineCount = useMemo(() => (text.trim() === "" ? 0 : text.split(/\r\n|\r|\n/).length), [text]);
   const readTime = Math.ceil(wordCount / 200);
-  const readabilityLabel = useMemo(() => getReadabilityLabel(calculateReadability(text), lang), [text, lang]);
+  
+  // НОВО: Изчисляване на изреченията
+  const sentenceCount = useMemo(() => {
+    if (text.trim() === "") return 0;
+    return text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
+  }, [text]);
 
   const topWords = useMemo(() => {
     if (!text.trim()) return [];
@@ -318,6 +305,35 @@ export default function Home() {
     } catch { showToast(t.aiConnectionError); } finally { setLoadingAction(null); }
   };
 
+  const handleReplace = () => {
+    if (!findVal) return showToast(t.noFindWord);
+    const matches = text.split(findVal).length - 1;
+    if (matches === 0) return showToast(t.noMatches);
+    updateText(text.split(findVal).join(replaceVal), t.replaced(matches));
+  };
+
+  const translateText = async (sourceLang: string, targetLang: string) => {
+    if (!text.trim()) return showToast(t.noTextToTranslate);
+    showToast(t.translating);
+    try {
+      let translated = "";
+      if (engine === "google") {
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+        const data = await res.json(); if (data && data[0]) data[0].forEach((item: any) => { if (item[0]) translated += item[0]; });
+      } else if (engine === "mymemory") {
+        const sl = sourceLang === "auto" ? "bg" : sourceLang;
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${targetLang}`);
+        const data = await res.json(); if (data?.responseData?.translatedText) translated = data.responseData.translatedText;
+      } else if (engine === "lingva") {
+        const sl = sourceLang === "auto" ? "auto" : sourceLang;
+        const res = await fetch(`https://lingva.ml/api/v1/${sl}/${targetLang}/${encodeURIComponent(text)}`);
+        const data = await res.json(); if (data?.translation) translated = data.translation;
+      }
+      if (translated) { updateText(translated, t.translationReady); }
+      else showToast(t.translateNoResult);
+    } catch { showToast(t.translateError); }
+  };
+
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
   const makeSmall = () => updateText(text.toLowerCase(), t.lowerSuccess);
   const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
@@ -333,6 +349,24 @@ export default function Home() {
   const removeEmptyLines = () => updateText(text.split(/\r?\n/).filter((l) => l.trim() !== "").join("\n"), t.emptyRemoved);
   const sortLinesAsc = () => updateText(text.split(/\r?\n/).sort((a, b) => a.localeCompare(b, lang)).join("\n"), t.sorted);
   const sortLinesDesc = () => updateText(text.split(/\r?\n/).sort((a, b) => b.localeCompare(a, lang)).join("\n"), t.sorted);
+
+  const toLatin = () => {
+    const map: Record<string, string> = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sht",ъ:"a",ь:"y",ю:"yu",я:"ya",А:"A",Б:"B",В:"V",Г:"G",Д:"D",Е:"E",Ж:"Zh",З:"Z",И:"I",Й:"Y",К:"K",Л:"L",М:"M",Н:"N",О:"O",П:"P",Р:"R",С:"S",Т:"T",У:"U",Ф:"F",Х:"H",Ц:"Ts",Ч:"Ch",Ш:"Sh",Щ:"Sht",Ъ:"A",Ь:"Y",Ю:"Yu",Я:"Ya" };
+    let res = ""; for (const c of text) res += map[c] ?? c; updateText(res, t.translitSuccess);
+  };
+
+  const toCyrillic = () => {
+    let tText = text; if (!tText.trim()) return;
+    tText = tText.replace(/\bzdrvei\b/gi, "zdravei").replace(/([aeouаеоу])i\b/gi, "$1й").replace(/([AEOUАЕОУ])I\b/g, "$1Й");
+    const multiMap: Array<[string, string]> = [["sht","щ"],["Sht","Щ"],["zh","ж"],["Zh","Ж"],["ch","ч"],["Ch","Ч"],["sh","ш"],["Sh","Ш"],["ts","ц"],["Ts","Ц"],["yu","ю"],["Yu","Ю"],["ya","я"],["Ya","Я"]];
+    for (const [en, bg] of multiMap) tText = tText.split(en).join(bg);
+    const singleMap: Record<string, string> = { a:"а",b:"б",v:"в",g:"г",d:"д",e:"е",z:"з",i:"и",y:"й",k:"к",l:"л",m:"м",n:"н",o:"о",p:"п",r:"р",s:"с",t:"т",u:"у",f:"ф",h:"х",c:"ц",w:"в",A:"А",B:"Б",V:"В",G:"Г",D:"Д",E:"Е",Z:"З",I:"И",Y:"Й",K:"К",L:"Л",M:"М",N:"Н",O:"О",P:"П",R:"Р",S:"С",T:"Т",U:"У",F:"Ф",H:"Х",C:"Ц",W:"В" };
+    let res = ""; for (const c of tText) res += singleMap[c] ?? c; updateText(res, t.translitSuccess);
+  };
+
+  const encodeBase64 = () => { try { const b = new TextEncoder().encode(text); let bin = ""; b.forEach((x) => (bin += String.fromCharCode(x))); updateText(btoa(bin), t.encodeSuccess); } catch { showToast(t.encodeError); } };
+  const decodeBase64 = () => { try { const bin = atob(text); const b = Uint8Array.from(bin, (c) => c.charCodeAt(0)); updateText(new TextDecoder().decode(b), t.decodeSuccess); } catch { showToast(t.invalidBase64); } };
+  const formatJSON = () => { try { updateText(JSON.stringify(JSON.parse(text), null, 2), t.jsonFormatted); } catch { showToast(t.invalidJson); } };
 
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
   const mdBtnClass = `px-2.5 py-1 rounded border transition-colors ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`;
@@ -364,7 +398,10 @@ export default function Home() {
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{wordCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.words}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{lineCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.lines}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{readTime}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.readTime}</div></div>
-          <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-[11px] font-bold text-blue-600 truncate">{readabilityLabel}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.readability}</div></div>
+          
+          {/* СМЕНЕНО: Readability -> Sentences */}
+          <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{sentenceCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">Изречения</div></div>
+          
           <button type="button" onClick={async () => { try { const t = await navigator.clipboard.readText(); updateText(t, "OK!"); } catch { } }} className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg">{t.pasteBtn}</div></button>
         </div>
 
@@ -406,7 +443,6 @@ export default function Home() {
 
         {!showPreview ? (
           <textarea 
-            ref={textAreaRef} 
             value={text} 
             onChange={handleTextChange} 
             placeholder={t.placeholder} 
@@ -467,6 +503,7 @@ export default function Home() {
             )}
             {activeTab === "social" && (
               <div className="space-y-4 text-sm">
+                {/* Връщаме progress bar-овете, защото charCount вече работи */}
                 <div><div className="flex justify-between font-bold mb-1"><span>{t.twLimit}</span><span className={charCount <= 280 ? "text-emerald-500" : "text-rose-500"}>{charCount} / 280 ({charCount <= 280 ? t.twOk : t.twNo})</span></div><div className={`h-2 rounded-full w-full ${isLight ? "bg-slate-200" : "bg-slate-800"}`}><div className={`h-full rounded-full ${charCount <= 280 ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${Math.min(100, (charCount / 280) * 100)}%` }}></div></div></div>
                 <div><div className="flex justify-between font-bold mb-1"><span>{t.liLimit}</span><span className={charCount <= 3000 ? "text-emerald-500" : "text-rose-500"}>{charCount} / 3000</span></div><div className={`h-2 rounded-full w-full ${isLight ? "bg-slate-200" : "bg-slate-800"}`}><div className={`h-full rounded-full ${charCount <= 3000 ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${Math.min(100, (charCount / 3000) * 100)}%` }}></div></div></div>
               </div>
@@ -510,6 +547,41 @@ export default function Home() {
              <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.formatJSON}</button>
           </div>
         </details>
+
+        {/* Върнах и Търсене & Замяна, и Превод */}
+        <div className={`p-4 rounded-xl border space-y-2 ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}>
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.searchReplace}</div>
+          <div className="flex flex-wrap gap-2">
+            <input type="text" placeholder={t.findPlaceholder} value={findVal} onChange={(e) => setFindVal(e.target.value)} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
+            <input type="text" placeholder={t.replacePlaceholder} value={replaceVal} onChange={(e) => setReplaceVal(e.target.value)} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
+            <button type="button" onClick={handleReplace} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm">{t.replaceBtn}</button>
+          </div>
+        </div>
+
+        <div className={`p-4 rounded-xl border space-y-3 ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}>
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.transEngine}</div>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <label htmlFor="trans-engine">{t.engineLabel}</label>
+              <select id="trans-engine" value={engine} onChange={(e) => setEngine(e.target.value)} className={`border text-xs px-2 py-1 rounded-md outline-none ${isLight ? "bg-slate-50 border-slate-300 text-slate-800" : "bg-slate-950 border-slate-800 text-slate-200"}`}>
+                <option value="google">Google Translate</option><option value="mymemory">MyMemory</option><option value="lingva">Lingva</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[{ src: "bg", tgt: "en", label: t.transEn }, { src: "en", tgt: "bg", label: t.transBg }, { src: "auto", tgt: "de", label: t.transDe }, { src: "auto", tgt: "fr", label: t.transFr }].map((btn, idx) => (
+              <button type="button" key={idx} onClick={() => translateText(btn.src, btn.tgt)} className={`border py-2 rounded-lg text-xs font-semibold transition-all ${isLight ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-emerald-950/30 hover:bg-emerald-900/50 text-emerald-300 border-emerald-800/50"}`}>{btn.label}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.translit}</div>
+          <div className="grid grid-cols-2 gap-2">
+            <TooltipButton onClick={toLatin} text={t.cyrToLat} tip={t.tips.toLatin} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={toCyrillic} text={t.latToCyr} tip={t.tips.toCyrillic} isLight={isLight} processingText={t.processing} />
+          </div>
+        </div>
 
         <footer className={`pt-8 border-t text-center text-[10px] text-slate-500 ${isLight ? "border-slate-200" : "border-slate-800"}`}>TextFix Pro &copy; 2026</footer>
       </div>
