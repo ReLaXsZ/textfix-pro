@@ -16,12 +16,12 @@ export const metadata: Metadata = {
     "transliteration",
     "форматиране на текст",
     "AI резюме",
-    manifest: "/manifest.json",
   ],
   robots: {
     index: true,
     follow: true,
   },
+  manifest: "/manifest.json",
   openGraph: {
     title: "TextFix Pro - Интелигентен текстов помощник & Редактор",
     description:
@@ -58,7 +58,7 @@ export default function RootLayout({
       <body>
         {children}
 
-        {/* Google AdSense — зарежда се след интерактивност, за да не блокира */}
+        {/* Google AdSense */}
         <Script
           id="adsbygoogle-init"
           async
