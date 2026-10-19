@@ -9,7 +9,7 @@ import { jsPDF } from "jspdf";
 import { diffWords, diffChars } from "diff";
 import Tesseract from "tesseract.js";
 import { toPng } from "html-to-image";
-import { translations } from "./data/translations";
+import { translations } from "../data/translations";
 
 type Language = "bg" | "en" | "fr" | "de" | "es" | "tr";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
