@@ -175,8 +175,6 @@ export default function Home() {
   const wordCount = useMemo(() => (text.trim() === "" ? 0 : text.trim().split(/\s+/).length), [text]);
   const lineCount = useMemo(() => (text.trim() === "" ? 0 : text.split(/\r\n|\r|\n/).length), [text]);
   const readTime = Math.ceil(wordCount / 200);
-  
-  // НОВО: Изчисляване на изреченията
   const sentenceCount = useMemo(() => {
     if (text.trim() === "") return 0;
     return text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
@@ -399,8 +397,8 @@ export default function Home() {
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{lineCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.lines}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{readTime}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.readTime}</div></div>
           
-          {/* СМЕНЕНО: Readability -> Sentences */}
-          <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{sentenceCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">Изречения</div></div>
+          {/* ТУК ВЕЧЕ ПОЛЗВАМЕ ПРЕВОДА */}
+          <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{sentenceCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.sentences || "Sentences"}</div></div>
           
           <button type="button" onClick={async () => { try { const t = await navigator.clipboard.readText(); updateText(t, "OK!"); } catch { } }} className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg">{t.pasteBtn}</div></button>
         </div>
@@ -503,7 +501,6 @@ export default function Home() {
             )}
             {activeTab === "social" && (
               <div className="space-y-4 text-sm">
-                {/* Връщаме progress bar-овете, защото charCount вече работи */}
                 <div><div className="flex justify-between font-bold mb-1"><span>{t.twLimit}</span><span className={charCount <= 280 ? "text-emerald-500" : "text-rose-500"}>{charCount} / 280 ({charCount <= 280 ? t.twOk : t.twNo})</span></div><div className={`h-2 rounded-full w-full ${isLight ? "bg-slate-200" : "bg-slate-800"}`}><div className={`h-full rounded-full ${charCount <= 280 ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${Math.min(100, (charCount / 280) * 100)}%` }}></div></div></div>
                 <div><div className="flex justify-between font-bold mb-1"><span>{t.liLimit}</span><span className={charCount <= 3000 ? "text-emerald-500" : "text-rose-500"}>{charCount} / 3000</span></div><div className={`h-2 rounded-full w-full ${isLight ? "bg-slate-200" : "bg-slate-800"}`}><div className={`h-full rounded-full ${charCount <= 3000 ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${Math.min(100, (charCount / 3000) * 100)}%` }}></div></div></div>
               </div>
@@ -548,7 +545,6 @@ export default function Home() {
           </div>
         </details>
 
-        {/* Върнах и Търсене & Замяна, и Превод */}
         <div className={`p-4 rounded-xl border space-y-2 ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}>
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.searchReplace}</div>
           <div className="flex flex-wrap gap-2">
