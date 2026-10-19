@@ -671,8 +671,9 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className={`pt-8 border-t text-center text-[10px] text-slate-500 space-y-2 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
+                <footer className={`pt-8 border-t text-center text-[10px] text-slate-500 space-y-2 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
           <div className="flex justify-center gap-4 mb-2 text-xs">
+            <a href="/blog" className="hover:underline hover:text-blue-500 font-bold">Blog</a>
             <a href="/about" className="hover:underline hover:text-blue-500">About</a>
             <a href="/contact" className="hover:underline hover:text-blue-500">Contact</a>
             <a href="/privacy" className="hover:underline hover:text-blue-500">Privacy Policy</a>
