@@ -14,7 +14,6 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const HISTORY_DEBOUNCE_MS = 500;
 const SESSION_SAVE_DEBOUNCE_MS = 3000;
 
-// --- Преводи (Тук са съкратени за преглед, но в реалния код са пълни) ---
 const translations = {
   bg: {
     title: "TextFix Pro", subtitle: "Интелигентен текстов помощник & Редактор v2.3", chars: "Символа", noSpaces: "Без интервали", words: "Думи", lines: "Редове", paragraphs: "Абзаци", readTime: "Време за четене", readability: "Трудност", readTimeValue: (n: number) => `${n} мин`, pasteBtn: "📋 Постави", upload: "📁 Качете файл (.txt, .md, .json, .docx)", uploadSub: "Поддържа автоматично извличане на текст от Word, Markdown и текстов формат (макс. 10 MB)", undo: "↩️ Назад", redo: "↪️ Напред", copy: "📋 Копирай", downloadTxt: "💾 .txt", downloadDocx: "📄 .docx", downloadPdf: "📕 .pdf", placeholder: "Въведете или поставете вашия текст тук...", aiTools: "🤖 Интелигентни AI инструменти", aiSummary: "✨ AI Резюме", aiFix: "📝 AI Граматика", aiExpand: "🚀 AI Разшири", aiShorten: "📉 AI Скъси", aiSimplify: "🧸 AI Опрости", aiElevate: "🎓 AI Повиши", aiCustomPlaceholder: "Собствена инструкция (напр. 'Направи го като имейл до шефа')...", aiCustomBtn: "Изпълни", aiResultTitle: "🤖 Интелигентен резултат:", copyResult: "📋 Копирай", replaceText: "🔄 Замени", closeResult: "❌ Затвори", processing: "Обработва се...", voiceInput: "🎤 Гласов вход", voiceStop: "⏹️ Спри", speakText: "🔊 Прочети", speakStop: "🔇 Спри", voiceListeningMsg: "🎙️ Записва активно... Говорете!", voiceSpeakingMsg: "🔊 Прочитане...", ttsSettings: "Настройки на гласа", ttsRate: "Скорост", ttsPitch: "Тон", wordFreqTitle: "📊 Честота на думите:", historyTitle: "💾 Запазени сесии:", historyRestore: "Възстанови", historyClear: "Изчисти", markdownTitle: "✍️ Markdown:", previewTitle: "👁️ Преглед", editorTitle: "✏️ Редактор", noTextPreview: "Няма въведен текст.", searchReplace: "🔍 Търсене & Замяна", findPlaceholder: "Търси...", replacePlaceholder: "Замени с...", replaceBtn: "Замени всички", transEngine: "🌐 Превод", engineLabel: "Услуга:", transEn: "На Английски 🇬🇧", transBg: "На Български 🇧🇬", transDe: "На Немски 🇩🇪", transFr: "На Френски 🇫🇷", copyTranslation: "📋 Копирай само превода", translit: "🔠 Транслитерация", cyrToLat: "Кирилица ➔ Латиница", latToCyr: "Латиница ➔ Кирилица", tools: "🛠️ Почистване и Форматиране", uppercase: "ГОЛЕМИ", lowercase: "малки", sentenceCase: "✏️ Изречение", titleCase: "🔠 Заглавие", slug: "🔗 Slug", stripHtml: "🧹 HTML", removeSpaces: "✂️ Интервали", removeDuplicates: "🗑️ Дубликати", removeEmpty: "📭 Празни редове", sortLinesAsc: "🔤 Сортирай А-Я", sortLinesDesc: "🔤 Сортирай Я-А", clearAll: "Изчисти всичко", proTools: "⚡ PRO Инструменти", encodeBase64: "🔐 Base64 Кодирай", decodeBase64: "🔓 Base64 Декодирай", formatJSON: "📦 Форматирай JSON", buyCoffee: "☕ Кафе", lightTheme: "☀️ Светъл", darkTheme: "🌙 Тъмен", fileTooLarge: "Файлът е твърде голям (макс. 10 MB).", fileLoaded: (name: string) => `Файлът "${name}" е зареден!`, wordFileLoading: "Зареждане на Word...", wordFileLoaded: "Word документът е зареден!", wordFileFallback: "Текстът не можа да се извлече.", wordLoadError: "Грешка при .docx.", noTextToDownload: "Няма текст!", noTextToCopy: "Няма текст за копиране!", noTextToSpeak: "Няма текст за четене!", noTextForAi: "Моля, въведете текст!", noFindWord: "Въведете дума!", noMatches: "Няма съвпадения.", noTextToTranslate: "Няма текст за превод!", aiError: "Грешка от асистента.", aiConnectionError: "Грешка със сървъра.", translateError: "Грешка с преводача.", translateNoResult: "Опитайте друг преводач.", invalidBase64: "Невалиден Base64.", invalidJson: "Невалиден JSON.", encodeError: "Грешка при кодиране.", speechNotSupported: "Браузърът не поддържа глас.", ttsNotSupported: "Браузърът не поддържа четене.", microphoneDenied: "Разрешете микрофона.", listeningError: "Грешка при микрофона.", speaking: "Прочитане...", speakingStopped: "Спряно.", listeningStopped: "Спряно.", micActive: "Микрофонът е активен!", copied: "Копирано!", copiedResult: "Резултатът е копиран!", downloaded: "Изтеглено!", replaced: (n: number) => `Заменени ${n} места!`, resultReady: "Готово!", mainTextReplaced: "Текстът е заменен!", textRestored: "Възстановено!", translitSuccess: "Успешна транслитерация!", upperSuccess: "ГОЛЕМИ БУКВИ!", lowerSuccess: "малки букви!", sentenceSuccess: "Главни букви!", titleSuccess: "Заглавия!", slugSuccess: "Готов Slug!", htmlStripped: "HTML премахнат!", spacesRemoved: "Интервалите са изчистени!", duplicatesRemoved: "Дубликатите са премахнати!", emptyRemoved: "Празните редове са премахнати!", sorted: "Сортирано!", cleared: "Изчистено!", encodeSuccess: "Base64 готово!", decodeSuccess: "Base64 декодирано!", jsonFormatted: "JSON форматиран!", translating: "Превежда се...", translationReady: "Преводът е готов!", confirmClearHistory: "Сигурни ли сте, че искате да изчистите историята?", confirmClearAll: "Сигурни ли сте, че искате да изчистите целия текст?", compareTitle: "🔍 Text Compare (Сравнение)", compareOriginal: "Оригинален текст (преди)", compareNew: "Нов текст (за сравнение)", compareResult: "Резултат от сравнението:", compareEmpty: "Тук ще се покаже резултатът...", compareAdded: "Нови думи", compareRemoved: "Премахнати думи", compareClose: "Затвори", compareCase: "Главни/малки букви", compareWords: "Думи", compareChars: "Символи", tips: { aiSummary: "Резюме на текста", aiFix: "Коригира правопис и граматика", aiExpand: "Разширява текста", aiShorten: "Съкращава текста", aiSimplify: "Опростява езика", aiElevate: "Професионален стил", voiceInput: "Диктуване с микрофон", speakText: "Четене на глас", toLatin: "Кирилица към латиница", toCyrillic: "Латиница към кирилица", uppercase: "Всички букви главни", lowercase: "Всички букви малки", sentenceCase: "Главна буква на изречение", titleCase: "Главна буква на всяка дума", slug: "URL адрес", stripHtml: "Премахва HTML", removeSpaces: "Маха излишни интервали", removeDuplicateLines: "Маха дублиращи се редове", removeEmptyLines: "Маха празни редове", sortLinesAsc: "Сортира А-Я", sortLinesDesc: "Сортира Я-А", encodeBase64: "Base64 кодиране", decodeBase64: "Base64 декодиране", formatJSON: "Подрежда JSON" }
@@ -37,17 +36,8 @@ function calculateReadability(text: string): number {
   if (!text.trim()) return 0;
   const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
   const words = text.trim().split(/\s+/).length;
-  
-  // Проверяваме дали текстът съдържа кирилица
-  const hasCyrillic = /[а-яА-ЯёЁ]/.test(text);
-  
-  // Броим сричките според азбуката
-  const vowelRegex = hasCyrillic ? /[аеиоуъюяАЕИОУЪЮЯ]/g : /[aeiouyAEIOUY]/g;
-  const syllables = text.replace(/[^a-zа-яё]/gi, "").replace(vowelRegex, "a").length;
-
-  if (words === 0 || sentences === 0 || syllables === 0) return 0;
-  
-  // Изчисляваме резултата (Flesch Reading Ease)
+  const syllables = text.toLowerCase().replace(/[^a-zа-яё]/g, "").replace(/[aeiouyаеиоуъюя]+/g, "a").length;
+  if (words === 0 || sentences === 0) return 0;
   const score = 206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words);
   return Math.max(0, Math.min(100, score));
 }
@@ -108,9 +98,9 @@ export default function Home() {
       if (browserLang.startsWith("bg")) return "bg";
       if (browserLang.startsWith("fr")) return "fr";
       if (browserLang.startsWith("de")) return "de";
-      return "en";
+      return "en"; // Default to English
     }
-    return "bg";
+    return "bg"; // Fallback for server
   });
 
   const [isLight, setIsLight] = useState(false);
@@ -414,7 +404,7 @@ export default function Home() {
   const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
   const capitalizeTitleCase = () => updateText(text.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase()), t.titleSuccess);
   const makeSlug = () => {
-    const map: Record<string, string> = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"т",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sht",ъ:"a",ь:"y",ю:"yu",я:"ya" };
+    const map: Record<string, string> = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sht",ъ:"a",ь:"y",ю:"yu",я:"ya" };
     let slug = ""; for (const c of text.toLowerCase()) slug += map[c] ?? c;
     updateText(slug.replace(/[^a-z0-9\s-]/g, "").trim().replace(/[\s]+/g, "-"), t.slugSuccess);
   };
@@ -433,9 +423,6 @@ export default function Home() {
   const clearHistory = () => { if (window.confirm(t.confirmClearHistory)) { try { localStorage.removeItem("textfix_history"); } catch { } setSavedHistory([]); } };
 
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
-
-  // Помощна функция за бутоните на Markdown
-  const markdownBtnClass = `px-2.5 py-1 rounded border font-bold transition-all ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`;
 
   return (
     <main className={`min-h-screen transition-colors duration-300 p-4 md:p-10 font-sans flex flex-col items-center ${isLight ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-slate-100"}`}>
@@ -462,7 +449,7 @@ export default function Home() {
           </div>
         </header>
 
-        <ShareButtons lang={lang} />
+        <ShareButtons lang={lang} isLight={isLight} />
 
         {/* Статистика и Paste */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2 text-center">
@@ -541,10 +528,10 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-1.5 flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
             <span className="font-semibold text-slate-500 mr-1 hidden sm:inline">{t.markdownTitle}</span>
-            <button type="button" onClick={() => insertMarkdown("bold")} className={markdownBtnClass}>B</button>
-            <button type="button" onClick={() => insertMarkdown("italic")} className={`${markdownBtnClass} italic`}>I</button>
-            <button type="button" onClick={() => insertMarkdown("h1")} className={markdownBtnClass}>H1</button>
-            <button type="button" onClick={() => insertMarkdown("list")} className={markdownBtnClass}>• List</button>
+            <button type="button" onClick={() => insertMarkdown("bold")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">B</button>
+            <button type="button" onClick={() => insertMarkdown("italic")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 italic rounded border border-slate-300 dark:border-slate-700">I</button>
+            <button type="button" onClick={() => insertMarkdown("h1")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">H1</button>
+            <button type="button" onClick={() => insertMarkdown("list")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded border border-slate-300 dark:border-slate-700">• List</button>
           </div>
           <div className="flex gap-1.5">
             <button type="button" onClick={() => setShowCompare(!showCompare)} className={`px-3 py-1 rounded-lg font-semibold shadow-sm transition-all ${showCompare ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'}`}>
@@ -641,7 +628,20 @@ export default function Home() {
               <button type="button" onClick={clearHistory} className="text-rose-500 hover:underline">{t.historyClear}</button>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
-              {savedHistory.map((item, idx) => (<button type="button" key={idx} onClick={() => updateText(item, t.textRestored)} className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-blue-500 hover:text-white rounded text-[11px] truncate max-w-[200px] border border-slate-200 dark:border-slate-700">{item.slice(0, 25)}...</button>))}
+              {savedHistory.map((item, idx) => (
+                <button 
+                  type="button" 
+                  key={idx} 
+                  onClick={() => updateText(item, t.textRestored)} 
+                  className={`px-2.5 py-1 rounded text-[11px] truncate max-w-[200px] border transition-colors ${
+                    isLight 
+                      ? "bg-slate-100 hover:bg-blue-500 hover:text-white text-slate-800 border-slate-200" 
+                      : "bg-slate-800 hover:bg-blue-500 hover:text-white text-slate-200 border-slate-700"
+                  }`}
+                >
+                  {item.slice(0, 25)}...
+                </button>
+              ))}
             </div>
           </div>
         )}
