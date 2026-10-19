@@ -220,22 +220,15 @@ export default function Home() {
     } catch (err) { console.error(err); }
   };
 
-  // --- ФУНКЦИИ ЗА КОПИРАНЕ И ИЗТЕГЛЯНЕ ---
   const copyText = async () => {
     if (!text.trim()) return showToast(t.noTextToCopy);
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast(t.copied);
-    } catch (err) {
-      showToast(t.encodeError);
-    }
+    try { await navigator.clipboard.writeText(text); showToast(t.copied); } catch { }
   };
 
   const downloadTxt = () => {
     if (!text.trim()) return showToast(t.noTextToDownload);
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    saveAs(blob, "TextFix.txt");
-    showToast(t.downloaded);
+    saveAs(blob, "TextFix.txt"); showToast(t.downloaded);
   };
 
   const downloadDocx = () => {
@@ -247,11 +240,51 @@ export default function Home() {
 
   const downloadPdf = () => {
     if (!text.trim()) return showToast(t.noTextToDownload);
-    const doc = new jsPDF();
-    const splitText = doc.splitTextToSize(text, 180);
-    doc.text(splitText, 15, 15);
-    doc.save("TextFix.pdf");
-    showToast(t.downloaded);
+    const doc = new jsPDF(); const splitText = doc.splitTextToSize(text, 180); doc.text(splitText, 15, 15); doc.save("TextFix.pdf"); showToast(t.downloaded);
+  };
+
+  // --- АУДИО ФУНКЦИИ ---
+  const toggleVoiceInput = () => {
+    const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) return showToast(t.speechNotSupported);
+    
+    if (isListening) {
+      isListeningRef.current = false; setIsListening(false);
+      try { recognitionRef.current?.stop(); } catch { }
+      return showToast(t.listeningStopped);
+    }
+
+    try {
+      const recognition = new SpeechRecognitionCtor();
+      recognitionRef.current = recognition; isListeningRef.current = true; recognitionRestartCountRef.current = 0;
+      recognition.lang = lang === "bg" ? "bg-BG" : lang === "fr" ? "fr-FR" : lang === "de" ? "de-DE" : "en-US";
+      recognition.continuous = true; recognition.interimResults = true;
+      
+      recognition.onstart = () => { setIsListening(true); showToast(t.micActive); };
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) if (event.results[i].isFinal) transcript += event.results[i][0].transcript + " ";
+        if (transcript) setText((prev) => prev ? prev + " " + transcript.trim() : transcript.trim());
+      };
+      recognition.onerror = (e: any) => { if (e.error === "not-allowed") { showToast(t.microphoneDenied); isListeningRef.current = false; setIsListening(false); } };
+      recognition.onend = () => {
+        if (isListeningRef.current && recognitionRestartCountRef.current < 5) { recognitionRestartCountRef.current++; try { recognition.start(); } catch { setIsListening(false); } }
+        else { setIsListening(false); isListeningRef.current = false; }
+      };
+      recognition.start();
+    } catch { showToast(t.listeningError); isListeningRef.current = false; setIsListening(false); }
+  };
+
+  const toggleSpeech = () => {
+    if (!("speechSynthesis" in window)) return showToast(t.ttsNotSupported);
+    if (isSpeaking) { window.speechSynthesis.cancel(); setIsSpeaking(false); return showToast(t.speakingStopped); }
+    if (!text.trim()) return showToast(t.noTextToSpeak);
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === "bg" ? "bg-BG" : lang === "fr" ? "fr-FR" : lang === "de" ? "de-DE" : "en-US";
+    utterance.rate = ttsRate; utterance.pitch = ttsPitch;
+    utterance.onend = () => setIsSpeaking(false); utterance.onerror = () => setIsSpeaking(false);
+    setIsSpeaking(true); window.speechSynthesis.speak(utterance); showToast(t.speaking);
   };
 
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
@@ -307,8 +340,8 @@ export default function Home() {
         <div className="space-y-2">
           <div className="flex flex-wrap justify-between items-center text-xs gap-2">
             <div className="space-x-2 flex items-center">
-              <button type="button" onClick={() => {}} className={`px-3 py-1.5 rounded-md font-semibold border ${isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700"}`}>{t.voiceInput}</button>
-              <button type="button" onClick={() => {}} className={`px-3 py-1.5 rounded-md font-semibold border ${isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700"}`}>{t.speakText}</button>
+              <button type="button" onClick={toggleVoiceInput} className={`px-3 py-1.5 rounded-md font-semibold border flex items-center gap-1.5 ${isListening ? "bg-rose-600 text-white border-rose-600 animate-pulse" : isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700"}`}>{isListening ? t.voiceStop : t.voiceInput}</button>
+              <button type="button" onClick={toggleSpeech} className={`px-3 py-1.5 rounded-md font-semibold border flex items-center gap-1.5 ${isSpeaking ? "bg-amber-600 text-white border-amber-600 animate-pulse" : isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700"}`}>{isSpeaking ? t.speakStop : t.speakText}</button>
             </div>
             <div className="space-x-2 flex items-center">
               <button type="button" onClick={copyText} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.copy}</button>
@@ -317,6 +350,17 @@ export default function Home() {
               <button type="button" onClick={downloadPdf} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.downloadPdf}</button>
             </div>
           </div>
+
+          {/* ПРОГРЕС БАР ЗА АУДИО */}
+          {(isListening || isSpeaking) && (
+            <div className={`p-3.5 rounded-xl border flex flex-col space-y-2 text-xs font-semibold shadow-inner ${isListening ? "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-300" : "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-300"}`}>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-current animate-ping" />{isListening ? t.voiceListeningMsg : t.voiceSpeakingMsg}</span>
+                <span className="text-[10px] opacity-80">{isListening ? "REC • 16kHz" : "TTS Audio"}</span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden"><div className={`h-full rounded-full animate-pulse transition-all duration-300 ${isListening ? "bg-rose-500 w-full" : "bg-amber-500 w-full"}`} /></div>
+            </div>
+          )}
         </div>
 
         {/* Undo/Redo + Compare + Preview */}
