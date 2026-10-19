@@ -11,21 +11,14 @@ const PROMPTS: Record<string, (text: string, custom?: string) => string> = {
   elevate: (text) => `Elevate and rewrite the following text into an exquisite, highly professional, and sophisticated style, keeping the same language as the input:\n\n${text}`,
   custom: (text, custom) => `Follow this instruction: "${custom}". Apply it to the following text and respond in the same language as the text:\n\n${text}`,
   
-  // НОВИ ФУНКЦИИ:
-  // 1. Fix & Explain
+  // Нови функции
   fix_explain: (text) => `Fix any grammar, spelling, and styling errors in the following text. Then, explain what you changed and why (keep it brief). Keep the same language as the input:\n\n${text}`,
-  // 2. Detect & Fix
   detect_fix: (text) => `Analyze the following text specifically for grammatical mistakes (like passive voice, wrong agreement, etc.). Fix ONLY those mistakes and leave the rest of the text untouched. Return the corrected text. Keep the same language as the input:\n\n${text}`,
-  // 3. Meta Descriptions
   meta_desc: (text) => `Generate 3 different SEO-friendly meta descriptions (max 160 characters each) for the following text. Provide them as a numbered list in the same language as the input:\n\n${text}`,
-  // 4. AI Diff (Сравнение)
   compare: (text, custom) => `Compare these two texts. Text 1: "${text}". Text 2: "${custom}". Explain the main differences in tone, structure, and content in the same language as the texts.`,
-  // 5. Smart Translate
   translate_smart: (text, custom) => `Translate the following text into ${custom}, keeping the original tone, idioms, and professional context intact:\n\n${text}`,
-  // 6. Reading Level
   reading_level: (text) => `Analyze the following text and tell me the reading level (e.g., "Suitable for 12-year-olds", "Academic level") and why. Keep it brief and in the same language as the text:\n\n${text}`,
-  // 7. Content Generator
-  generate: (text, custom) => `Write a text about: "${custom}". Use the following tone/style: "${text}". Make it well-structured and ready to use.`,
+  generate: (text, custom) => `Write a text about: "${text}". Use the following tone/style: "${custom}". Make it well-structured and ready to use.`,
 };
 
 export async function POST(req: NextRequest) {

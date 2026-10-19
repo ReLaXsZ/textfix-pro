@@ -55,7 +55,6 @@ export default function Home() {
   const [ttsPitch, setTtsPitch] = useState(1);
   const [customPrompt, setCustomPrompt] = useState("");
 
-  // Нови състояния за новите инструменти
   const [genTopic, setGenTopic] = useState("");
   const [genTone, setGenTone] = useState("formal");
   const [compareText2, setCompareText2] = useState("");
@@ -268,7 +267,7 @@ export default function Home() {
   };
 
   const handleAiAction = async (actionType: string, customInst: string = "") => {
-    if (!text.trim()) return showToast(t.noTextForAi);
+    if (!text.trim() && actionType !== "generate") return showToast(t.noTextForAi);
     setLoadingAction(actionType); showToast(t.processing);
     try {
       const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, action: actionType, customInstruction: customInst }) });
@@ -284,6 +283,29 @@ export default function Home() {
     const matches = text.split(findVal).length - 1;
     if (matches === 0) return showToast(t.noMatches);
     updateText(text.split(findVal).join(replaceVal), t.replaced(matches));
+  };
+
+  // ФУНКЦИЯТА ЗА ПРЕВОД, КОЯТО ЛИПСВАШЕ
+  const translateText = async (sourceLang: string, targetLang: string) => {
+    if (!text.trim()) return showToast(t.noTextToTranslate);
+    showToast(t.translating);
+    try {
+      let translated = "";
+      if (engine === "google") {
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+        const data = await res.json(); if (data && data[0]) data[0].forEach((item: any) => { if (item[0]) translated += item[0]; });
+      } else if (engine === "mymemory") {
+        const sl = sourceLang === "auto" ? "bg" : sourceLang;
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${targetLang}`);
+        const data = await res.json(); if (data?.responseData?.translatedText) translated = data.responseData.translatedText;
+      } else if (engine === "lingva") {
+        const sl = sourceLang === "auto" ? "auto" : sourceLang;
+        const res = await fetch(`https://lingva.ml/api/v1/${sl}/${targetLang}/${encodeURIComponent(text)}`);
+        const data = await res.json(); if (data?.translation) translated = data.translation;
+      }
+      if (translated) { updateText(translated, t.translationReady); }
+      else showToast(t.translateNoResult);
+    } catch { showToast(t.translateError); }
   };
 
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
@@ -395,13 +417,13 @@ export default function Home() {
             value={text} 
             onChange={handleTextChange} 
             placeholder={t.placeholder} 
+            spellCheck={false}
             className={`w-full h-48 p-4 rounded-xl border focus:ring-2 focus:ring-blue-500 text-sm resize-y ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`} 
           />
         ) : (
           <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm whitespace-pre-wrap ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`}>{text || t.noTextPreview}</div>
         )}
 
-        {/* AI Tools & New Functions */}
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -409,19 +431,16 @@ export default function Home() {
             <TooltipButton onClick={() => handleAiAction("fix")} text={t.aiFix} tip={t.tips.aiFix} isAi isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("expand")} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
             
-            {/* НОВИ БУТОНИ */}
             <TooltipButton onClick={() => handleAiAction("fix_explain")} text={t.aiFixExplain} tip="Fix and Explain" isAi isLoading={loadingAction === "fix_explain"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} tip="Detect & Fix" isAi isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} tip="Meta Descriptions" isAi isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} tip="Reading Level" isAi isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
           </div>
 
-          {/* Нови секции */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-blue-200/50 dark:border-slate-700/50">
-            {/* AI Генератор */}
             <div className="space-y-2">
               <div className="text-[10px] font-bold text-slate-500 uppercase">{t.aiGenerate}</div>
-              <input type="text" placeholder={t.genTopic} value={genTopic} onChange={(e) => setGenTopic(e.target.value)} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`} />
+              <input type="text" placeholder={t.genTopic} value={genTopic} onChange={(e) => setGenTopic(e.target.value)} spellCheck={false} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`} />
               <select value={genTone} onChange={(e) => setGenTone(e.target.value)} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`}>
                 <option value="formal">Formal</option>
                 <option value="friendly">Friendly</option>
@@ -432,7 +451,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* AI Smart Translate */}
             <div className="space-y-2">
               <div className="text-[10px] font-bold text-slate-500 uppercase">{t.aiSmartTrans}</div>
               <select value={smartTransLang} onChange={(e) => setSmartTransLang(e.target.value)} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`}>
@@ -448,11 +466,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* AI Сравнение */}
         {showCompare && (
           <div className={`p-4 rounded-xl border space-y-3 ${isLight ? "bg-amber-50/50 border-amber-200" : "bg-slate-900/60 border-slate-800"}`}>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.compareAiBtn}</div>
-            <textarea value={compareText2} onChange={(e) => setCompareText2(e.target.value)} placeholder={t.comparePlaceholder2} className={`w-full h-32 p-3 text-xs font-mono rounded-lg border focus:outline-none focus:border-amber-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`} />
+            <textarea value={compareText2} onChange={(e) => setCompareText2(e.target.value)} placeholder={t.comparePlaceholder2} spellCheck={false} className={`w-full h-32 p-3 text-xs font-mono rounded-lg border focus:outline-none focus:border-amber-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`} />
             <button type="button" onClick={() => handleAiAction("compare", compareText2)} disabled={!compareText2 || loadingAction === "compare"} className="w-full bg-amber-600 text-white font-bold py-2 rounded-lg text-xs disabled:opacity-50">
               {loadingAction === "compare" ? t.processing : t.compareAiBtn}
             </button>
@@ -548,8 +565,8 @@ export default function Home() {
         <div className={`p-4 rounded-xl border space-y-2 ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}>
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.searchReplace}</div>
           <div className="flex flex-wrap gap-2">
-            <input type="text" placeholder={t.findPlaceholder} value={findVal} onChange={(e) => setFindVal(e.target.value)} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
-            <input type="text" placeholder={t.replacePlaceholder} value={replaceVal} onChange={(e) => setReplaceVal(e.target.value)} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
+            <input type="text" placeholder={t.findPlaceholder} value={findVal} onChange={(e) => setFindVal(e.target.value)} spellCheck={false} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
+            <input type="text" placeholder={t.replacePlaceholder} value={replaceVal} onChange={(e) => setReplaceVal(e.target.value)} spellCheck={false} className={`border px-3 py-2 text-xs rounded-lg flex-1 outline-none focus:border-blue-500 ${isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`} />
             <button type="button" onClick={handleReplace} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm">{t.replaceBtn}</button>
           </div>
         </div>
