@@ -16,7 +16,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const HISTORY_DEBOUNCE_MS = 500;
 const SESSION_SAVE_DEBOUNCE_MS = 3000;
 
-// ТУК СА БАЛОНЧЕТАТА (Върнати са!)
+// КОМПОНЕНТ ЗА БУТОН С БАЛОНЧЕ (Tooltip)
 function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoading = false, isLight, processingText }: any) {
   let btnStyle = isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : isPro ? (isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700") : (isLight ? "bg-white text-slate-700 border-slate-200" : "bg-slate-900 text-slate-200 border-slate-800");
   return (
@@ -31,7 +31,7 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   );
 }
 
-// НОВ КОМПОНЕНТ: Бутон за AI с описание под него и балонче
+// КОМПОНЕНТ ЗА AI БУТОН (с описание и балонче)
 function AiButton({ onClick, text, desc, tip, isAi = true, isLoading = false, isLight, processingText }: any) {
   return (
     <div className="relative inline-block w-full">
@@ -514,31 +514,19 @@ export default function Home() {
         <div className={`rounded-2xl border overflow-hidden ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className={`p-4 border-b ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}><h3 className="font-bold text-sm">{t.toolkitTitle}</h3></div>
           <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800 text-xs font-bold">
-            <button 
-              onClick={() => setActiveTab("pass")} 
-              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "pass" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
-            >
+            <button onClick={() => setActiveTab("pass")} className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "pass" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>
               <span>{t.toolPass}</span>
               <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_pass}</span>
             </button>
-            <button 
-              onClick={() => setActiveTab("img")} 
-              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "img" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
-            >
+            <button onClick={() => setActiveTab("img")} className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "img" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>
               <span>{t.toolImg}</span>
               <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_img}</span>
             </button>
-            <button 
-              onClick={() => setActiveTab("ocr")} 
-              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "ocr" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
-            >
+            <button onClick={() => setActiveTab("ocr")} className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "ocr" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>
               <span>{t.toolOcr}</span>
               <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_ocr}</span>
             </button>
-            <button 
-              onClick={() => setActiveTab("social")} 
-              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "social" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
-            >
+            <button onClick={() => setActiveTab("social")} className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "social" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>
               <span>{t.toolSocial}</span>
               <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_social}</span>
             </button>
@@ -655,7 +643,15 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className={`pt-8 border-t text-center text-[10px] text-slate-500 ${isLight ? "border-slate-200" : "border-slate-800"}`}>TextFix Pro &copy; 2026</footer>
+        {/* ТУК Е НОВИЯТ ФУТЪР */}
+        <footer className={`pt-8 pb-8 border-t text-center text-[11px] text-slate-500 space-y-3 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
+          <div className="flex flex-wrap justify-center gap-4 mb-4">
+            <a href="/about" className="hover:text-blue-500 transition-colors">За нас</a>
+            <a href="/contact" className="hover:text-blue-500 transition-colors">Контакти</a>
+            <a href="/privacy" className="hover:text-blue-500 transition-colors">Политика за поверителност</a>
+          </div>
+          <div>TextFix Pro &copy; 2026 — Всички права запазени.</div>
+        </footer>
       </div>
       {toastMsg && <div role="status" className="fixed bottom-6 right-6 bg-emerald-600 text-white font-semibold text-xs py-3 px-5 rounded-xl shadow-2xl z-50 animate-bounce">{toastMsg}</div>}
     </main>
