@@ -75,13 +75,27 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   else btnStyle = isLight ? "bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-sm" : "bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-800";
 
   return (
-    <div className="relative group inline-block w-full">
+    <div className="relative inline-block w-full">
       <button type="button" onClick={onClick} disabled={isLoading} className={`w-full py-2.5 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70 ${btnStyle}`}>
         {isLoading && <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
         {isLoading ? processingText : text}
       </button>
-      <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center cursor-help shadow-sm ${isAi ? "bg-blue-500 text-white" : isLight ? "bg-slate-300 text-slate-700" : "bg-slate-700 text-slate-300"}`} aria-hidden="true">i</span>
-      <div role="tooltip" className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-[11px] rounded-md border shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-normal max-w-xs text-center z-50 pointer-events-none ${isLight ? "bg-slate-900 text-slate-100 border-slate-800" : "bg-slate-900 text-slate-200 border-slate-700"}`}>{tip}</div>
+      
+      {/* Тук разделяме кръгчето "i" в отделен елемент с hover ефект, за да не отваря всички едновременно */}
+      <span 
+        className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center cursor-help shadow-sm peer ${isAi ? "bg-blue-500 text-white" : isLight ? "bg-slate-300 text-slate-700" : "bg-slate-700 text-slate-300"}`} 
+        aria-hidden="true"
+      >
+        i
+      </span>
+      
+      {/* Този div се показва САМО когато мишката е върху "i" (peer-hover) */}
+      <div 
+        role="tooltip" 
+        className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-[11px] rounded-md border shadow-xl opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-150 whitespace-normal max-w-xs text-center z-50 pointer-events-none ${isLight ? "bg-slate-900 text-slate-100 border-slate-800" : "bg-slate-900 text-slate-200 border-slate-700"}`}
+      >
+        {tip}
+      </div>
     </div>
   );
 }
@@ -402,7 +416,7 @@ export default function Home() {
   const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
   const capitalizeTitleCase = () => updateText(text.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase()), t.titleSuccess);
   const makeSlug = () => {
-    const map: Record<string, string> = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sht",ъ:"a",ь:"y",ю:"yu",я:"ya" };
+    const map: Record<string, string> = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"с",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sht",ъ:"a",ь:"y",ю:"yu",я:"ya" };
     let slug = ""; for (const c of text.toLowerCase()) slug += map[c] ?? c;
     updateText(slug.replace(/[^a-z0-9\s-]/g, "").trim().replace(/[\s]+/g, "-"), t.slugSuccess);
   };
@@ -421,8 +435,6 @@ export default function Home() {
   const clearHistory = () => { if (window.confirm(t.confirmClearHistory)) { try { localStorage.removeItem("textfix_history"); } catch { } setSavedHistory([]); } };
 
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
-
-  // ВАЖНО: Тук са поправени цветовете на Markdown бутоните
   const mdBtnClass = `px-2.5 py-1 rounded border transition-colors ${
     isLight 
       ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" 
