@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-// --- RATE LIMITING (Защита от ботове) ---
+// --- RATE LIMITING ---
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const LIMIT = 15; // Максимум 15 заявки на минута за 1 IP
-const WINDOW_MS = 60 * 1000; // за 1 минута
+const LIMIT = 15;
+const WINDOW_MS = 60 * 1000;
 
-// --- DAILY QUOTA (Защита на API ключа) ---
+// --- DAILY QUOTA ---
 let dailyCount = 0;
 let lastQuotaReset = Date.now();
-const DAILY_LIMIT = 300; // Максимум 300 AI заявки на ден за целия сайт
-const DAY_MS = 24 * 60 * 60 * 1000; // 24 часа
+const DAILY_LIMIT = 300;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const PROMPTS: Record<string, (text: string, custom?: string) => string> = {
   summary: (text) => `Summarize the following text concisely in the same language as the input:\n\n${text}`,
@@ -22,56 +22,40 @@ const PROMPTS: Record<string, (text: string, custom?: string) => string> = {
   elevate: (text) => `Elevate and rewrite the following text into an exquisite, highly professional, and sophisticated style, keeping the same language as the input:\n\n${text}`,
   custom: (text, custom) => `Follow this instruction: "${custom}". Apply it to the following text and respond in the same language as the text:\n\n${text}`,
   fix_explain: (text) => `Fix any grammar, spelling, and styling errors in the following text. Then, explain what you changed and why (keep it brief). Keep the same language as the input:\n\n${text}`,
-  detect_fix: (text) => `Analyze the following text specifically for grammatical mistakes (like passive voice, wrong agreement, etc.). Fix ONLY those mistakes and leave the rest of the text untouched. Return the corrected text. Keep the same language as the input:\n\n${text}`,
+  detect_fix: (text) => `Analyze the following text specifically for grammatical mistakes. Fix ONLY those mistakes and leave the rest untouched. Keep the same language as the input:\n\n${text}`,
   meta_desc: (text) => `Generate 3 different SEO-friendly meta descriptions (max 160 characters each) for the following text. Provide them as a numbered list in the same language as the input:\n\n${text}`,
   compare: (text, custom) => `Compare these two texts. Text 1: "${text}". Text 2: "${custom}". Explain the main differences in tone, structure, and content in the same language as the texts.`,
   translate_smart: (text, custom) => `Translate the following text into ${custom}, keeping the original tone, idioms, and professional context intact:\n\n${text}`,
-  reading_level: (text) => `Analyze the following text and tell me the reading level (e.g., "Suitable for 12-year-olds", "Academic level") and why. Keep it brief and in the same language as the text:\n\n${text}`,
+  reading_level: (text) => `Analyze the following text and tell me the reading level and why. Keep it brief and in the same language as the text:\n\n${text}`,
   generate: (text, custom) => `Write a text about: "${text}". Use the following tone/style: "${custom}". Make it well-structured and ready to use.`,
+  
+  // НОВИ:
+  synonyms: (text) => `You are a dictionary. The user provides a word or a short phrase. Return a comma-separated list of 5-8 synonyms in the same language. Do not add any extra text, just the list. Word: ${text}`,
+  antonyms: (text) => `You are a dictionary. The user provides a word or a short phrase. Return a comma-separated list of 5-8 antonyms in the same language. Do not add any extra text, just the list. Word: ${text}`,
 };
 
 export async function POST(req: NextRequest) {
   try {
     const now = Date.now();
+    if (now - lastQuotaReset > DAY_MS) { dailyCount = 0; lastQuotaReset = now; }
+    if (dailyCount >= DAILY_LIMIT) return NextResponse.json({ error: "Daily limit reached." }, { status: 429 });
 
-    // 1. Проверка за ДНЕВНА КВОТА
-    if (now - lastQuotaReset > DAY_MS) {
-      dailyCount = 0;
-      lastQuotaReset = now;
-    }
-    if (dailyCount >= DAILY_LIMIT) {
-      return NextResponse.json({ error: "Daily AI limit reached. Please try again tomorrow." }, { status: 429 });
-    }
-
-    // 2. Проверка за RATE LIMIT (на минута)
     const ip = req.headers.get("x-forwarded-for") || "unknown-ip";
     const rateData = rateLimitMap.get(ip);
-
     if (rateData) {
-      if (now - rateData.lastReset > WINDOW_MS) {
-        rateLimitMap.set(ip, { count: 1, lastReset: now });
-      } else {
-        if (rateData.count >= LIMIT) {
-          return NextResponse.json({ error: "Too many requests. Please wait a minute." }, { status: 429 });
-        }
+      if (now - rateData.lastReset > WINDOW_MS) rateLimitMap.set(ip, { count: 1, lastReset: now });
+      else {
+        if (rateData.count >= LIMIT) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
         rateData.count++;
       }
-    } else {
-      rateLimitMap.set(ip, { count: 1, lastReset: now });
-    }
+    } else rateLimitMap.set(ip, { count: 1, lastReset: now });
 
-    // 3. Изпълнение на заявката
     const body = await req.json();
     const { text, action, customInstruction } = body;
 
-    if (!PROMPTS[action]) {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-    }
-
+    if (!PROMPTS[action]) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
-    }
+    if (!apiKey) return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
 
     const prompt = PROMPTS[action](text || "", customInstruction);
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
@@ -83,16 +67,13 @@ export async function POST(req: NextRequest) {
       signal: AbortSignal.timeout(60_000),
     });
 
-    if (!res.ok) {
-      return NextResponse.json({ error: `Gemini API error` }, { status: 502 });
-    }
-
+    if (!res.ok) return NextResponse.json({ error: `Gemini API error` }, { status: 502 });
     const data = await res.json();
     const aiResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!aiResponse) return NextResponse.json({ error: "Empty response" }, { status: 502 });
     
-    dailyCount++; // Увеличаваме дневния брояч при успешна заявка
+    dailyCount++;
     return NextResponse.json({ result: aiResponse.trim() });
   } catch (err) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
