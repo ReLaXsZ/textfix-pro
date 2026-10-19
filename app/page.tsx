@@ -168,9 +168,11 @@ export default function Home() {
     setHistoryIndex((prevIdx) => Math.min(history.slice(0, prevIdx + 1).length, 99));
   }, [history, historyIndex]);
 
-  // ОПРАВЕНО: Функцията за писане вече не блокира моменталното обновяване
-  const handleTextChange = (newText: string) => {
-    setText(newText);
+  // ТУК Е МАГИЯТА: При всяка промяна на текста, ние веднага обновяваме state-а за статистиките
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setText(newText); // Това кара статистиките да се обновят моментално
+
     if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
     historyDebounceRef.current = setTimeout(() => {
       commitHistory(newText);
@@ -406,7 +408,7 @@ export default function Home() {
           <textarea 
             ref={textAreaRef} 
             value={text} 
-            onChange={(e) => handleTextChange(e.target.value)} 
+            onChange={handleTextChange} 
             placeholder={t.placeholder} 
             className={`w-full h-48 p-4 rounded-xl border focus:ring-2 focus:ring-blue-500 text-sm resize-y ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`} 
           />
