@@ -220,6 +220,23 @@ export default function Home() {
     } catch (err) { console.error(err); }
   };
 
+  // --- ФУНКЦИИ ЗА ПОЧИСТВАНЕ И ФОРМАТИРАНЕ ---
+  const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
+  const makeSmall = () => updateText(text.toLowerCase(), t.lowerSuccess);
+  const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
+  const capitalizeTitleCase = () => updateText(text.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase()), t.titleSuccess);
+  const makeSlug = () => {
+    const map: Record<string, string> = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sht",ъ:"a",ь:"y",ю:"yu",я:"ya" };
+    let slug = ""; for (const c of text.toLowerCase()) slug += map[c] ?? c;
+    updateText(slug.replace(/[^a-z0-9\s-]/g, "").trim().replace(/[\s]+/g, "-"), t.slugSuccess);
+  };
+  const stripHtmlTags = () => updateText(text.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+(>|$)/g, "").replace(/\n\s*\n/g, "\n\n").trim(), t.htmlStripped);
+  const removeSpaces = () => updateText(text.replace(/[ \t]+/g, " ").trim(), t.spacesRemoved);
+  const removeDuplicateLines = () => { const lines = text.split(/\r?\n/); updateText([...new Set(lines)].join("\n"), t.duplicatesRemoved); };
+  const removeEmptyLines = () => updateText(text.split(/\r?\n/).filter((l) => l.trim() !== "").join("\n"), t.emptyRemoved);
+  const sortLinesAsc = () => updateText(text.split(/\r?\n/).sort((a, b) => a.localeCompare(b, lang)).join("\n"), t.sorted);
+  const sortLinesDesc = () => updateText(text.split(/\r?\n/).sort((a, b) => b.localeCompare(a, lang)).join("\n"), t.sorted);
+
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
   const mdBtnClass = `px-2.5 py-1 rounded border transition-colors ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`;
 
@@ -333,13 +350,22 @@ export default function Home() {
           </div>
         </div>
 
+        {/* СЕКЦИЯ ПОЧИСТВАНЕ (Върнати всички бутони) */}
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <summary className="p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">🔠 {t.tools}</summary>
-          <div className="p-4 pt-0 grid grid-cols-2 sm:grid-cols-4 gap-2">
-             <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.uppercase}</button>
-             <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.lowercase}</button>
-             <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.stripHtml}</button>
-             <button className={`bg-rose-50 text-rose-700 py-2.5 rounded-lg font-semibold`}>{t.clearAll}</button>
+          <div className="p-4 pt-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            <button type="button" onClick={makeBIG} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.uppercase}</button>
+            <button type="button" onClick={makeSmall} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.lowercase}</button>
+            <button type="button" onClick={capitalizeSentences} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.sentenceCase}</button>
+            <button type="button" onClick={capitalizeTitleCase} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.titleCase}</button>
+            <button type="button" onClick={makeSlug} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.slug}</button>
+            <button type="button" onClick={stripHtmlTags} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.stripHtml}</button>
+            <button type="button" onClick={removeSpaces} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.removeSpaces}</button>
+            <button type="button" onClick={removeDuplicateLines} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.removeDuplicates}</button>
+            <button type="button" onClick={removeEmptyLines} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.removeEmpty}</button>
+            <button type="button" onClick={sortLinesAsc} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.sortLinesAsc}</button>
+            <button type="button" onClick={sortLinesDesc} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.sortLinesDesc}</button>
+            <button type="button" onClick={() => updateText("", t.cleared)} className={`bg-rose-50 text-rose-700 py-2.5 rounded-lg font-semibold`}>{t.clearAll}</button>
           </div>
         </details>
 
