@@ -31,7 +31,6 @@ const translations = {
 
 type Translation = (typeof translations)["bg"];
 
-// --- Helper functions ---
 function calculateReadability(text: string): number {
   if (!text.trim()) return 0;
   const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
@@ -58,7 +57,6 @@ function getReadabilityLabel(score: number, lang: string): string {
   return arr[4];
 }
 
-// --- Components ---
 interface TooltipButtonProps {
   onClick: () => void;
   text: string;
@@ -98,9 +96,9 @@ export default function Home() {
       if (browserLang.startsWith("bg")) return "bg";
       if (browserLang.startsWith("fr")) return "fr";
       if (browserLang.startsWith("de")) return "de";
-      return "en"; // Default to English
+      return "en";
     }
-    return "bg"; // Fallback for server
+    return "bg";
   });
 
   const [isLight, setIsLight] = useState(false);
@@ -424,6 +422,13 @@ export default function Home() {
 
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
 
+  // ВАЖНО: Тук са поправени цветовете на Markdown бутоните
+  const mdBtnClass = `px-2.5 py-1 rounded border transition-colors ${
+    isLight 
+      ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" 
+      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+  }`;
+
   return (
     <main className={`min-h-screen transition-colors duration-300 p-4 md:p-10 font-sans flex flex-col items-center ${isLight ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-slate-100"}`}>
       <div className="w-full max-w-4xl space-y-6">
@@ -528,10 +533,10 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-1.5 flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
             <span className="font-semibold text-slate-500 mr-1 hidden sm:inline">{t.markdownTitle}</span>
-            <button type="button" onClick={() => insertMarkdown("bold")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">B</button>
-            <button type="button" onClick={() => insertMarkdown("italic")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 italic rounded border border-slate-300 dark:border-slate-700">I</button>
-            <button type="button" onClick={() => insertMarkdown("h1")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-bold rounded border border-slate-300 dark:border-slate-700">H1</button>
-            <button type="button" onClick={() => insertMarkdown("list")} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded border border-slate-300 dark:border-slate-700">• List</button>
+            <button type="button" onClick={() => insertMarkdown("bold")} className={`${mdBtnClass} font-bold`}>B</button>
+            <button type="button" onClick={() => insertMarkdown("italic")} className={`${mdBtnClass} italic`}>I</button>
+            <button type="button" onClick={() => insertMarkdown("h1")} className={`${mdBtnClass} font-bold`}>H1</button>
+            <button type="button" onClick={() => insertMarkdown("list")} className={mdBtnClass}>• List</button>
           </div>
           <div className="flex gap-1.5">
             <button type="button" onClick={() => setShowCompare(!showCompare)} className={`px-3 py-1 rounded-lg font-semibold shadow-sm transition-all ${showCompare ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'}`}>
