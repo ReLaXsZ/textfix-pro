@@ -126,6 +126,20 @@ export default function Home() {
   }, [lang, isMounted]);
 
   useEffect(() => {
+    if (!text.trim()) return;
+    const timer = setTimeout(() => {
+      setHistory((prev) => {
+        if (prev[0] === text) return prev;
+        const filtered = prev.filter((item) => item !== text);
+        const updated = [text, ...filtered].slice(0, 5);
+        try { localStorage.setItem("textfix_history", JSON.stringify(updated)); } catch (e) { console.error(e); }
+        return updated;
+      });
+    }, SESSION_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [text]);
+
+  useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
       if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
@@ -177,6 +191,15 @@ export default function Home() {
   const sentenceCount = useMemo(() => {
     if (text.trim() === "") return 0;
     return text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
+  }, [text]);
+
+  const topWords = useMemo(() => {
+    if (!text.trim()) return [];
+    const stopWords = new Set(["и", "в", "на", "с", "за", "че", "от", "по", "да", "как", "се", "не", "е", "the", "and", "to", "of", "a", "in", "is", "it"]);
+    const wordsArr = text.toLowerCase().match(/[a-zа-я0-9]+/gi) || [];
+    const freqMap: Record<string, number> = {};
+    wordsArr.forEach((w) => { if (w.length > 2 && !stopWords.has(w)) freqMap[w] = (freqMap[w] || 0) + 1; });
+    return Object.entries(freqMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [text]);
 
   const generatePassword = () => {
@@ -453,6 +476,15 @@ export default function Home() {
           <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm whitespace-pre-wrap ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`}>{text || t.noTextPreview}</div>
         )}
 
+        {topWords.length > 0 && (
+          <div className={`p-3.5 rounded-xl border text-xs space-y-1.5 ${isLight ? "bg-amber-50 border-amber-200 text-amber-900" : "bg-slate-900 border-slate-800 text-amber-300"}`}>
+            <div className="flex justify-between items-center"><span className="font-bold">{t.wordFreqTitle}</span></div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {topWords.map(([word, count], idx) => (<span key={idx} className="bg-amber-200 dark:bg-slate-800 px-2 py-0.5 rounded font-semibold text-slate-800 dark:text-slate-200">&quot;{word}&quot;: {count}x</span>))}
+            </div>
+          </div>
+        )}
+
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -464,8 +496,6 @@ export default function Home() {
             <AiButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} desc={t.desc_aiDetectFix} isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
             <AiButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} desc={t.desc_aiMetaDesc} isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
             <AiButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} desc={t.desc_aiReadingLevel} isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
-            
-            {/* НОВИ БУТОНИ */}
             <AiButton onClick={() => handleAiAction("synonyms")} text={t.aiSynonyms} desc={t.desc_aiSynonyms} isLoading={loadingAction === "synonyms"} isLight={isLight} processingText={t.processing} />
             <AiButton onClick={() => handleAiAction("antonyms")} text={t.aiAntonyms} desc={t.desc_aiAntonyms} isLoading={loadingAction === "antonyms"} isLight={isLight} processingText={t.processing} />
           </div>
@@ -578,17 +608,17 @@ export default function Home() {
             </span>
           </summary>
           <div className="p-4 pt-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            <button type="button" onClick={makeBIG} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.uppercase}</button>
-            <button type="button" onClick={makeSmall} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.lowercase}</button>
-            <button type="button" onClick={capitalizeSentences} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.sentenceCase}</button>
-            <button type="button" onClick={capitalizeTitleCase} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.titleCase}</button>
-            <button type="button" onClick={makeSlug} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.slug}</button>
-            <button type="button" onClick={stripHtmlTags} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.stripHtml}</button>
-            <button type="button" onClick={removeSpaces} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.removeSpaces}</button>
-            <button type="button" onClick={removeDuplicateLines} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.removeDuplicates}</button>
-            <button type="button" onClick={removeEmptyLines} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.removeEmpty}</button>
-            <button type="button" onClick={sortLinesAsc} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.sortLinesAsc}</button>
-            <button type="button" onClick={sortLinesDesc} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.sortLinesDesc}</button>
+            <TooltipButton onClick={makeBIG} text={t.uppercase} tip={t.tips.uppercase} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={makeSmall} text={t.lowercase} tip={t.tips.lowercase} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={capitalizeSentences} text={t.sentenceCase} tip={t.tips.sentenceCase} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={capitalizeTitleCase} text={t.titleCase} tip={t.tips.titleCase} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={makeSlug} text={t.slug} tip={t.tips.slug} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={stripHtmlTags} text={t.stripHtml} tip={t.tips.stripHtml} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={removeSpaces} text={t.removeSpaces} tip={t.tips.removeSpaces} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={removeDuplicateLines} text={t.removeDuplicates} tip={t.tips.removeDuplicateLines} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={removeEmptyLines} text={t.removeEmpty} tip={t.tips.removeEmptyLines} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={sortLinesAsc} text={t.sortLinesAsc} tip={t.tips.sortLinesAsc} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={sortLinesDesc} text={t.sortLinesDesc} tip={t.tips.sortLinesDesc} isLight={isLight} processingText={t.processing} />
             <button type="button" onClick={() => updateText("", t.cleared)} className={`bg-rose-50 text-rose-700 py-2.5 rounded-lg font-semibold`}>{t.clearAll}</button>
           </div>
         </details>
@@ -601,9 +631,9 @@ export default function Home() {
             </span>
           </summary>
           <div className="p-4 pt-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
-             <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.encodeBase64}</button>
-             <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.decodeBase64}</button>
-             <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.formatJSON}</button>
+             <TooltipButton onClick={encodeBase64} text={t.encodeBase64} tip={t.tips.encodeBase64} isPro isLight={isLight} processingText={t.processing} />
+             <TooltipButton onClick={decodeBase64} text={t.decodeBase64} tip={t.tips.decodeBase64} isPro isLight={isLight} processingText={t.processing} />
+             <TooltipButton onClick={formatJSON} text={t.formatJSON} tip={t.tips.formatJSON} isPro isLight={isLight} processingText={t.processing} />
           </div>
         </details>
 
@@ -641,7 +671,15 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className={`pt-8 border-t text-center text-[10px] text-slate-500 ${isLight ? "border-slate-200" : "border-slate-800"}`}>TextFix Pro &copy; 2026</footer>
+        <footer className={`pt-8 border-t text-center text-[10px] text-slate-500 space-y-2 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
+          <div className="flex justify-center gap-4 mb-2 text-xs">
+            <a href="/about" className="hover:underline hover:text-blue-500">About</a>
+            <a href="/contact" className="hover:underline hover:text-blue-500">Contact</a>
+            <a href="/privacy" className="hover:underline hover:text-blue-500">Privacy Policy</a>
+            <a href="/terms" className="hover:underline hover:text-blue-500">Terms</a>
+          </div>
+          <div>TextFix Pro &copy; 2026</div>
+        </footer>
       </div>
       {toastMsg && <div role="status" className="fixed bottom-6 right-6 bg-emerald-600 text-white font-semibold text-xs py-3 px-5 rounded-xl shadow-2xl z-50 animate-bounce">{toastMsg}</div>}
     </main>
