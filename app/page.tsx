@@ -37,7 +37,6 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   return (
     <div className="relative inline-block w-full">
       <button type="button" onClick={onClick} disabled={isLoading} className={`w-full py-2.5 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70 ${btnStyle}`}>
-        {/* ТУК Е ПРОГРЕС БАРЪТ ЗА AI */}
         {isLoading && <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
         {isLoading ? processingText : text}
       </button>
@@ -48,21 +47,11 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
 }
 
 export default function Home() {
-  const [lang, setLang] = useState<Language>(() => {
-    if (typeof window !== "undefined") {
-      const storedLang = localStorage.getItem("textfix_lang") as Language;
-      if (storedLang) return storedLang;
-      const bl = navigator.language.toLowerCase();
-      if (bl.startsWith("bg")) return "bg";
-      if (bl.startsWith("fr")) return "fr";
-      if (bl.startsWith("de")) return "de";
-      if (bl.startsWith("es")) return "es";
-      if (bl.startsWith("tr")) return "tr";
-      return "en";
-    }
-    return "bg";
-  });
+  // ВАЖНО: Задаваме начални стойности, които са еднакви за сървъра и клиента
+  const [lang, setLang] = useState<Language>("bg");
   const [isLight, setIsLight] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
   const [text, setText] = useState("");
   const [aiResult, setAiResult] = useState("");
   const [typedAiResult, setTypedAiResult] = useState("");
@@ -103,22 +92,42 @@ export default function Home() {
 
   const t: any = translations[lang] || translations.en;
 
+  // ВАЖНО: Зареждаме настройките едва след като компонентът се "монтира" в браузъра
   useEffect(() => {
+    setIsMounted(true);
     try {
       const storedHistory = localStorage.getItem("textfix_history");
       if (storedHistory) { const parsed = JSON.parse(storedHistory); if (Array.isArray(parsed)) setSavedHistory(parsed); }
+      
       const storedTheme = localStorage.getItem("textfix_theme");
       if (storedTheme === "light" || storedTheme === "dark") setIsLight(storedTheme === "light");
       else { const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches; setIsLight(!prefersDark); }
+      
+      const storedLang = localStorage.getItem("textfix_lang") as Language;
+      if (storedLang && ["bg", "en", "fr", "de", "es", "tr"].includes(storedLang)) {
+        setLang(storedLang);
+      } else {
+        const bl = navigator.language.toLowerCase();
+        if (bl.startsWith("bg")) setLang("bg");
+        else if (bl.startsWith("fr")) setLang("fr");
+        else if (bl.startsWith("de")) setLang("de");
+        else if (bl.startsWith("es")) setLang("es");
+        else if (bl.startsWith("tr")) setLang("tr");
+        else setLang("en");
+      }
     } catch (e) { console.error(e); }
   }, []);
 
   useEffect(() => {
+    if (!isMounted) return;
     try { localStorage.setItem("textfix_theme", isLight ? "light" : "dark"); } catch (e) { console.error(e); }
     if (typeof document !== "undefined") document.documentElement.classList.toggle("dark", !isLight);
-  }, [isLight]);
+  }, [isLight, isMounted]);
 
-  useEffect(() => { try { localStorage.setItem("textfix_lang", lang); } catch (e) { console.error(e); } }, [lang]);
+  useEffect(() => {
+    if (!isMounted) return;
+    try { localStorage.setItem("textfix_lang", lang); } catch (e) { console.error(e); }
+  }, [lang, isMounted]);
 
   useEffect(() => {
     if (!text.trim()) return;
@@ -244,12 +253,10 @@ export default function Home() {
     const doc = new jsPDF(); const splitText = doc.splitTextToSize(text, 180); doc.text(splitText, 15, 15); doc.save("TextFix.pdf"); showToast(t.downloaded);
   };
 
-  // --- ПОПРАВЕНО АУДИО ---
   const toggleVoiceInput = () => {
     if (typeof window === "undefined") return;
-    
     const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognitionCtor) return showToast("Браузърът ви не поддържа микрофон (SpeechRecognition). Опитайте с Chrome.");
+    if (!SpeechRecognitionCtor) return showToast("Браузърът ви не поддържа микрофон. Опитайте с Chrome.");
     
     if (isListening) {
       isListeningRef.current = false; setIsListening(false);
@@ -270,8 +277,8 @@ export default function Home() {
         if (transcript) setText((prev) => prev ? prev + " " + transcript.trim() : transcript.trim());
       };
       recognition.onerror = (e: any) => { 
-        if (e.error === "not-allowed") { showToast("Моля, разрешете достъп до микрофона в настройките на браузъра."); }
-        else { showToast("Грешка с микрофона: " + e.error); }
+        if (e.error === "not-allowed") { showToast("Моля, разрешете достъп до микрофона."); }
+        else { showToast("Грешка: " + e.error); }
         isListeningRef.current = false; setIsListening(false); 
       };
       recognition.onend = () => {
@@ -284,7 +291,7 @@ export default function Home() {
 
   const toggleSpeech = () => {
     if (typeof window === "undefined") return;
-    if (!("speechSynthesis" in window)) return showToast("Браузърът ви не поддържа синтез на глас (TTS). Опитайте с Chrome.");
+    if (!("speechSynthesis" in window)) return showToast("Браузърът ви не поддържа TTS (четене на глас).");
     if (isSpeaking) { window.speechSynthesis.cancel(); setIsSpeaking(false); return showToast(t.speakingStopped); }
     if (!text.trim()) return showToast(t.noTextToSpeak);
     
@@ -295,12 +302,10 @@ export default function Home() {
     setIsSpeaking(true); window.speechSynthesis.speak(utterance); showToast(t.speaking);
   };
 
-  // --- ФУНКЦИЯ ЗА AI (С ПРОГРЕС) ---
   const handleAiAction = async (actionType: string, customInst: string = "") => {
     if (!text.trim()) return showToast(t.noTextForAi);
     setLoadingAction(actionType); showToast(t.processing);
     try {
-      // Връзка към твоя сървърен API (който създадохме в route.ts)
       const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, action: actionType, customInstruction: customInst }) });
       if (!response.ok) { return showToast(t.aiError); }
       const data = await response.json();
@@ -327,6 +332,9 @@ export default function Home() {
 
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
   const mdBtnClass = `px-2.5 py-1 rounded border transition-colors ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`;
+
+  // За да избегнем трептене при първоначално зареждане
+  if (!isMounted) return null;
 
   return (
     <main className={`min-h-screen transition-colors duration-300 p-4 md:p-10 font-sans flex flex-col items-center ${isLight ? "bg-slate-50 text-slate-900" : "bg-slate-950 text-slate-100"}`}>
@@ -402,7 +410,6 @@ export default function Home() {
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {/* ТУК ВЕЧЕ ИМА ПРОГРЕС БАР (isLoading={loadingAction === 'summary'}) */}
             <TooltipButton onClick={() => handleAiAction("summary")} text={t.aiSummary} tip={t.tips.aiSummary} isAi isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("fix")} text={t.aiFix} tip={t.tips.aiFix} isAi isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("expand")} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
