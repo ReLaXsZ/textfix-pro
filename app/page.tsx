@@ -37,14 +37,11 @@ export default function Home() {
   
   const [text, setText] = useState("");
   const [aiResult, setAiResult] = useState("");
-  const [typedAiResult, setTypedAiResult] = useState("");
-  const [customPrompt, setCustomPrompt] = useState("");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([""]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [savedHistory, setSavedHistory] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
   const [compareText, setCompareText] = useState("");
@@ -56,6 +53,13 @@ export default function Home() {
   const [toastMsg, setToastMsg] = useState("");
   const [ttsRate, setTtsRate] = useState(1);
   const [ttsPitch, setTtsPitch] = useState(1);
+  const [customPrompt, setCustomPrompt] = useState("");
+
+  // Нови състояния за новите инструменти
+  const [genTopic, setGenTopic] = useState("");
+  const [genTone, setGenTone] = useState("formal");
+  const [compareText2, setCompareText2] = useState("");
+  const [smartTransLang, setSmartTransLang] = useState("English");
 
   const [password, setPassword] = useState("");
   const [passOptions, setPassOptions] = useState({ length: 16, upper: true, lower: true, num: true, sym: true });
@@ -69,7 +73,6 @@ export default function Home() {
   const recognitionRestartCountRef = useRef(0);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const historyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const imageRenderRef = useRef<HTMLDivElement>(null);
 
@@ -78,9 +81,6 @@ export default function Home() {
   useEffect(() => {
     setIsMounted(true);
     try {
-      const storedHistory = localStorage.getItem("textfix_history");
-      if (storedHistory) { const parsed = JSON.parse(storedHistory); if (Array.isArray(parsed)) setSavedHistory(parsed); }
-      
       const storedTheme = localStorage.getItem("textfix_theme");
       if (storedTheme === "light" || storedTheme === "dark") setIsLight(storedTheme === "light");
       else { const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches; setIsLight(!prefersDark); }
@@ -112,24 +112,9 @@ export default function Home() {
   }, [lang, isMounted]);
 
   useEffect(() => {
-    if (!text.trim()) return;
-    const timer = setTimeout(() => {
-      setSavedHistory((prev) => {
-        if (prev[0] === text) return prev;
-        const filtered = prev.filter((item) => item !== text);
-        const updated = [text, ...filtered].slice(0, 5);
-        try { localStorage.setItem("textfix_history", JSON.stringify(updated)); } catch (e) { console.error(e); }
-        return updated;
-      });
-    }, SESSION_SAVE_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [text]);
-
-  useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
       if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
       if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
       if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch { } }
     };
@@ -178,15 +163,6 @@ export default function Home() {
   const sentenceCount = useMemo(() => {
     if (text.trim() === "") return 0;
     return text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
-  }, [text]);
-
-  const topWords = useMemo(() => {
-    if (!text.trim()) return [];
-    const stopWords = new Set(["и", "в", "на", "с", "за", "че", "от", "по", "да", "как", "се", "не", "е", "the", "and", "to", "of", "a", "in", "is", "it"]);
-    const wordsArr = text.toLowerCase().match(/[a-zа-я0-9]+/gi) || [];
-    const freqMap: Record<string, number> = {};
-    wordsArr.forEach((w) => { if (w.length > 2 && !stopWords.has(w)) freqMap[w] = (freqMap[w] || 0) + 1; });
-    return Object.entries(freqMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [text]);
 
   const generatePassword = () => {
@@ -310,28 +286,6 @@ export default function Home() {
     updateText(text.split(findVal).join(replaceVal), t.replaced(matches));
   };
 
-  const translateText = async (sourceLang: string, targetLang: string) => {
-    if (!text.trim()) return showToast(t.noTextToTranslate);
-    showToast(t.translating);
-    try {
-      let translated = "";
-      if (engine === "google") {
-        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
-        const data = await res.json(); if (data && data[0]) data[0].forEach((item: any) => { if (item[0]) translated += item[0]; });
-      } else if (engine === "mymemory") {
-        const sl = sourceLang === "auto" ? "bg" : sourceLang;
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${targetLang}`);
-        const data = await res.json(); if (data?.responseData?.translatedText) translated = data.responseData.translatedText;
-      } else if (engine === "lingva") {
-        const sl = sourceLang === "auto" ? "auto" : sourceLang;
-        const res = await fetch(`https://lingva.ml/api/v1/${sl}/${targetLang}/${encodeURIComponent(text)}`);
-        const data = await res.json(); if (data?.translation) translated = data.translation;
-      }
-      if (translated) { updateText(translated, t.translationReady); }
-      else showToast(t.translateNoResult);
-    } catch { showToast(t.translateError); }
-  };
-
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
   const makeSmall = () => updateText(text.toLowerCase(), t.lowerSuccess);
   const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
@@ -396,10 +350,7 @@ export default function Home() {
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{wordCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.words}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{lineCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.lines}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{readTime}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.readTime}</div></div>
-          
-          {/* ТУК ВЕЧЕ ПОЛЗВАМЕ ПРЕВОДА */}
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{sentenceCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.sentences || "Sentences"}</div></div>
-          
           <button type="button" onClick={async () => { try { const t = await navigator.clipboard.readText(); updateText(t, "OK!"); } catch { } }} className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg">{t.pasteBtn}</div></button>
         </div>
 
@@ -450,14 +401,63 @@ export default function Home() {
           <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm whitespace-pre-wrap ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`}>{text || t.noTextPreview}</div>
         )}
 
+        {/* AI Tools & New Functions */}
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             <TooltipButton onClick={() => handleAiAction("summary")} text={t.aiSummary} tip={t.tips.aiSummary} isAi isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("fix")} text={t.aiFix} tip={t.tips.aiFix} isAi isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
             <TooltipButton onClick={() => handleAiAction("expand")} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
+            
+            {/* НОВИ БУТОНИ */}
+            <TooltipButton onClick={() => handleAiAction("fix_explain")} text={t.aiFixExplain} tip="Fix and Explain" isAi isLoading={loadingAction === "fix_explain"} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} tip="Detect & Fix" isAi isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} tip="Meta Descriptions" isAi isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} tip="Reading Level" isAi isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
+          </div>
+
+          {/* Нови секции */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-blue-200/50 dark:border-slate-700/50">
+            {/* AI Генератор */}
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold text-slate-500 uppercase">{t.aiGenerate}</div>
+              <input type="text" placeholder={t.genTopic} value={genTopic} onChange={(e) => setGenTopic(e.target.value)} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`} />
+              <select value={genTone} onChange={(e) => setGenTone(e.target.value)} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`}>
+                <option value="formal">Formal</option>
+                <option value="friendly">Friendly</option>
+                <option value="funny">Funny</option>
+              </select>
+              <button type="button" onClick={() => handleAiAction("generate", genTopic + "|" + genTone)} disabled={!genTopic || loadingAction === "generate"} className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs disabled:opacity-50">
+                {loadingAction === "generate" ? t.processing : t.genBtn}
+              </button>
+            </div>
+
+            {/* AI Smart Translate */}
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold text-slate-500 uppercase">{t.aiSmartTrans}</div>
+              <select value={smartTransLang} onChange={(e) => setSmartTransLang(e.target.value)} className={`w-full border px-3 py-2 text-xs rounded-lg outline-none focus:border-blue-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`}>
+                <option value="English">English</option>
+                <option value="Bulgarian">Bulgarian</option>
+                <option value="German">German</option>
+                <option value="French">French</option>
+              </select>
+              <button type="button" onClick={() => handleAiAction("translate_smart", smartTransLang)} disabled={loadingAction === "translate_smart"} className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs disabled:opacity-50">
+                {loadingAction === "translate_smart" ? t.processing : t.aiSmartTrans}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* AI Сравнение */}
+        {showCompare && (
+          <div className={`p-4 rounded-xl border space-y-3 ${isLight ? "bg-amber-50/50 border-amber-200" : "bg-slate-900/60 border-slate-800"}`}>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.compareAiBtn}</div>
+            <textarea value={compareText2} onChange={(e) => setCompareText2(e.target.value)} placeholder={t.comparePlaceholder2} className={`w-full h-32 p-3 text-xs font-mono rounded-lg border focus:outline-none focus:border-amber-500 ${isLight ? "bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`} />
+            <button type="button" onClick={() => handleAiAction("compare", compareText2)} disabled={!compareText2 || loadingAction === "compare"} className="w-full bg-amber-600 text-white font-bold py-2 rounded-lg text-xs disabled:opacity-50">
+              {loadingAction === "compare" ? t.processing : t.compareAiBtn}
+            </button>
+          </div>
+        )}
 
         <div className={`rounded-2xl border overflow-hidden ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className={`p-4 border-b ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}><h3 className="font-bold text-sm">{t.toolkitTitle}</h3></div>
