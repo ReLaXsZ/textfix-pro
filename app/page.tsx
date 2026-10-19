@@ -37,6 +37,7 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   return (
     <div className="relative inline-block w-full">
       <button type="button" onClick={onClick} disabled={isLoading} className={`w-full py-2.5 px-3 rounded-lg border text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70 ${btnStyle}`}>
+        {/* ТУК Е ПРОГРЕС БАРЪТ ЗА AI */}
         {isLoading && <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />}
         {isLoading ? processingText : text}
       </button>
@@ -91,7 +92,7 @@ export default function Home() {
   const [imgTextColor, setImgTextColor] = useState("#ffffff");
   const [activeTab, setActiveTab] = useState<"pass" | "img" | "ocr" | "social">("pass");
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
   const recognitionRestartCountRef = useRef(0);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -243,10 +244,12 @@ export default function Home() {
     const doc = new jsPDF(); const splitText = doc.splitTextToSize(text, 180); doc.text(splitText, 15, 15); doc.save("TextFix.pdf"); showToast(t.downloaded);
   };
 
-  // --- АУДИО ФУНКЦИИ ---
+  // --- ПОПРАВЕНО АУДИО ---
   const toggleVoiceInput = () => {
+    if (typeof window === "undefined") return;
+    
     const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognitionCtor) return showToast(t.speechNotSupported);
+    if (!SpeechRecognitionCtor) return showToast("Браузърът ви не поддържа микрофон (SpeechRecognition). Опитайте с Chrome.");
     
     if (isListening) {
       isListeningRef.current = false; setIsListening(false);
@@ -266,7 +269,11 @@ export default function Home() {
         for (let i = event.resultIndex; i < event.results.length; i++) if (event.results[i].isFinal) transcript += event.results[i][0].transcript + " ";
         if (transcript) setText((prev) => prev ? prev + " " + transcript.trim() : transcript.trim());
       };
-      recognition.onerror = (e: any) => { if (e.error === "not-allowed") { showToast(t.microphoneDenied); isListeningRef.current = false; setIsListening(false); } };
+      recognition.onerror = (e: any) => { 
+        if (e.error === "not-allowed") { showToast("Моля, разрешете достъп до микрофона в настройките на браузъра."); }
+        else { showToast("Грешка с микрофона: " + e.error); }
+        isListeningRef.current = false; setIsListening(false); 
+      };
       recognition.onend = () => {
         if (isListeningRef.current && recognitionRestartCountRef.current < 5) { recognitionRestartCountRef.current++; try { recognition.start(); } catch { setIsListening(false); } }
         else { setIsListening(false); isListeningRef.current = false; }
@@ -276,7 +283,8 @@ export default function Home() {
   };
 
   const toggleSpeech = () => {
-    if (!("speechSynthesis" in window)) return showToast(t.ttsNotSupported);
+    if (typeof window === "undefined") return;
+    if (!("speechSynthesis" in window)) return showToast("Браузърът ви не поддържа синтез на глас (TTS). Опитайте с Chrome.");
     if (isSpeaking) { window.speechSynthesis.cancel(); setIsSpeaking(false); return showToast(t.speakingStopped); }
     if (!text.trim()) return showToast(t.noTextToSpeak);
     
@@ -285,6 +293,20 @@ export default function Home() {
     utterance.rate = ttsRate; utterance.pitch = ttsPitch;
     utterance.onend = () => setIsSpeaking(false); utterance.onerror = () => setIsSpeaking(false);
     setIsSpeaking(true); window.speechSynthesis.speak(utterance); showToast(t.speaking);
+  };
+
+  // --- ФУНКЦИЯ ЗА AI (С ПРОГРЕС) ---
+  const handleAiAction = async (actionType: string, customInst: string = "") => {
+    if (!text.trim()) return showToast(t.noTextForAi);
+    setLoadingAction(actionType); showToast(t.processing);
+    try {
+      // Връзка към твоя сървърен API (който създадохме в route.ts)
+      const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, action: actionType, customInstruction: customInst }) });
+      if (!response.ok) { return showToast(t.aiError); }
+      const data = await response.json();
+      if (data?.result) { updateText(data.result, t.resultReady); }
+      else showToast(t.aiError);
+    } catch { showToast(t.aiConnectionError); } finally { setLoadingAction(null); }
   };
 
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
@@ -326,7 +348,6 @@ export default function Home() {
 
         <ShareButtons lang={lang as any} isLight={isLight} />
 
-        {/* Статистики */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-center">
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className={`text-lg font-bold ${charCounterColor}`}>{charCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.chars}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{wordCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.words}</div></div>
@@ -336,7 +357,6 @@ export default function Home() {
           <button type="button" onClick={async () => { try { const t = await navigator.clipboard.readText(); updateText(t, "OK!"); } catch { } }} className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg">{t.pasteBtn}</div></button>
         </div>
 
-        {/* Качване и Експорт */}
         <div className="space-y-2">
           <div className="flex flex-wrap justify-between items-center text-xs gap-2">
             <div className="space-x-2 flex items-center">
@@ -351,7 +371,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ПРОГРЕС БАР ЗА АУДИО */}
           {(isListening || isSpeaking) && (
             <div className={`p-3.5 rounded-xl border flex flex-col space-y-2 text-xs font-semibold shadow-inner ${isListening ? "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-300" : "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-300"}`}>
               <div className="flex items-center justify-between">
@@ -363,7 +382,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Undo/Redo + Compare + Preview */}
         <div className={`p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className="flex items-center gap-1.5 border-r pr-3 border-slate-300 dark:border-slate-700">
             <button type="button" onClick={undo} disabled={historyIndex <= 0} className={`px-3 py-1.5 rounded-lg font-bold border disabled:opacity-30 ${isLight ? "bg-slate-100 border-slate-300" : "bg-slate-800 border-slate-700"}`}>{t.undo}</button>
@@ -375,24 +393,22 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Текстова площ */}
         {!showPreview ? (
           <textarea ref={textAreaRef} value={text} onChange={(e) => updateText(e.target.value, undefined, true)} placeholder={t.placeholder} className={`w-full h-48 p-4 rounded-xl border focus:ring-2 focus:ring-blue-500 text-sm resize-y ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`} />
         ) : (
           <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm whitespace-pre-wrap ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`}>{text || t.noTextPreview}</div>
         )}
 
-        {/* AI Инструменти */}
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <TooltipButton onClick={() => {}} text={t.aiSummary} tip={t.tips.aiSummary} isAi isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => {}} text={t.aiFix} tip={t.tips.aiFix} isAi isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => {}} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLight={isLight} processingText={t.processing} />
+            {/* ТУК ВЕЧЕ ИМА ПРОГРЕС БАР (isLoading={loadingAction === 'summary'}) */}
+            <TooltipButton onClick={() => handleAiAction("summary")} text={t.aiSummary} tip={t.tips.aiSummary} isAi isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={() => handleAiAction("fix")} text={t.aiFix} tip={t.tips.aiFix} isAi isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
+            <TooltipButton onClick={() => handleAiAction("expand")} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
           </div>
         </div>
 
-        {/* Секция с нови инструменти (Toolkit) */}
         <div className={`rounded-2xl border overflow-hidden ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className={`p-4 border-b ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}><h3 className="font-bold text-sm">{t.toolkitTitle}</h3></div>
           <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800 text-xs font-bold">
@@ -442,7 +458,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Почистване (12 бутона + стрелкичка) */}
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">
             <div>🔠 {t.tools}</div>
@@ -466,7 +481,6 @@ export default function Home() {
           </div>
         </details>
 
-        {/* PRO Инструменти (стрелкичка) */}
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">
             <div>⚡ {t.proTools}</div>
