@@ -266,16 +266,32 @@ export default function Home() {
     setIsSpeaking(true); window.speechSynthesis.speak(utterance); showToast(t.speaking);
   };
 
+  // ТУК Е ПОПРАВКАТА - ДОБАВЕНА Е ЗАЯВКАТА КЪМ API-ТО
   const handleAiAction = async (actionType: string, customInst: string = "") => {
     if (!text.trim() && actionType !== "generate") return showToast(t.noTextForAi);
     setLoadingAction(actionType); showToast(t.processing);
     try {
-      const response = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, action: actionType, customInstruction: customInst }) });
-      if (!response.ok) { return showToast(t.aiError); }
+      const response = await fetch("/api/ai", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ text, action: actionType, customInstruction: customInst }) 
+      });
+      
+      if (!response.ok) { 
+        return showToast(t.aiError); 
+      }
+      
       const data = await response.json();
-      if (data?.result) { updateText(data.result, t.resultReady); }
-      else showToast(t.aiError);
-    } catch { showToast(t.aiConnectionError); } finally { setLoadingAction(null); }
+      if (data?.result) { 
+        updateText(data.result, t.resultReady); 
+      } else {
+        showToast(t.aiError);
+      }
+    } catch { 
+      showToast(t.aiConnectionError); 
+    } finally { 
+      setLoadingAction(null); 
+    }
   };
 
   const handleReplace = () => {
@@ -285,7 +301,6 @@ export default function Home() {
     updateText(text.split(findVal).join(replaceVal), t.replaced(matches));
   };
 
-  // ФУНКЦИЯТА ЗА ПРЕВОД, КОЯТО ЛИПСВАШЕ
   const translateText = async (sourceLang: string, targetLang: string) => {
     if (!text.trim()) return showToast(t.noTextToTranslate);
     showToast(t.translating);
