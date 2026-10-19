@@ -16,6 +16,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const HISTORY_DEBOUNCE_MS = 500;
 const SESSION_SAVE_DEBOUNCE_MS = 3000;
 
+// ТУК СА БАЛОНЧЕТАТА (Върнати са!)
 function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoading = false, isLight, processingText }: any) {
   let btnStyle = isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : isPro ? (isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700") : (isLight ? "bg-white text-slate-700 border-slate-200" : "bg-slate-900 text-slate-200 border-slate-800");
   return (
@@ -30,19 +31,23 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   );
 }
 
-// НОВ КОМПОНЕНТ: Бутон за AI с описание под него
-function AiButton({ onClick, text, desc, isAi = true, isLoading = false, isLight, processingText }: any) {
+// НОВ КОМПОНЕНТ: Бутон за AI с описание под него и балонче
+function AiButton({ onClick, text, desc, tip, isAi = true, isLoading = false, isLight, processingText }: any) {
   return (
-    <button type="button" onClick={onClick} disabled={isLoading} className={`w-full py-2 px-2 rounded-lg border text-xs font-semibold transition-all flex flex-col items-center justify-center gap-1 disabled:opacity-70 ${isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : ""}`}>
-      {isLoading ? (
-        <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />{processingText}</span>
-      ) : (
-        <>
-          <span>{text}</span>
-          <span className="text-[9px] font-normal opacity-70">{desc}</span>
-        </>
-      )}
-    </button>
+    <div className="relative inline-block w-full">
+      <button type="button" onClick={onClick} disabled={isLoading} className={`w-full py-2 px-2 rounded-lg border text-xs font-semibold transition-all flex flex-col items-center justify-center gap-1 disabled:opacity-70 ${isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : ""}`}>
+        {isLoading ? (
+          <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />{processingText}</span>
+        ) : (
+          <>
+            <span>{text}</span>
+            <span className="text-[9px] font-normal opacity-70">{desc}</span>
+          </>
+        )}
+      </button>
+      <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center cursor-help shadow-sm peer ${isAi ? "bg-blue-500 text-white" : isLight ? "bg-slate-300 text-slate-700" : "bg-slate-700 text-slate-300"}`}>i</span>
+      <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 text-[11px] rounded-md border shadow-xl opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-150 whitespace-normal max-w-xs text-center z-50 pointer-events-none ${isLight ? "bg-slate-900 text-slate-100 border-slate-800" : "bg-slate-900 text-slate-200 border-slate-700"}`}>{tip}</div>
+    </div>
   );
 }
 
@@ -457,14 +462,14 @@ export default function Home() {
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <AiButton onClick={() => handleAiAction("summary")} text={t.aiSummary} desc={t.desc_aiSummary} isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
-            <AiButton onClick={() => handleAiAction("fix")} text={t.aiFix} desc={t.desc_aiFix} isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
-            <AiButton onClick={() => handleAiAction("expand")} text={t.aiExpand} desc={t.desc_aiExpand} isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("summary")} text={t.aiSummary} desc={t.desc_aiSummary} tip={t.tips.aiSummary} isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("fix")} text={t.aiFix} desc={t.desc_aiFix} tip={t.tips.aiFix} isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("expand")} text={t.aiExpand} desc={t.desc_aiExpand} tip={t.tips.aiExpand} isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
             
-            <AiButton onClick={() => handleAiAction("fix_explain")} text={t.aiFixExplain} desc={t.desc_aiFixExplain} isLoading={loadingAction === "fix_explain"} isLight={isLight} processingText={t.processing} />
-            <AiButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} desc={t.desc_aiDetectFix} isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
-            <AiButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} desc={t.desc_aiMetaDesc} isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
-            <AiButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} desc={t.desc_aiReadingLevel} isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("fix_explain")} text={t.aiFixExplain} desc={t.desc_aiFixExplain} tip="Fix and Explain" isLoading={loadingAction === "fix_explain"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} desc={t.desc_aiDetectFix} tip="Detect & Fix" isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} desc={t.desc_aiMetaDesc} tip="Meta Descriptions" isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} desc={t.desc_aiReadingLevel} tip="Reading Level" isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-blue-200/50 dark:border-slate-700/50">
@@ -506,7 +511,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* TOOLKIT SECTION С ОПИСАНИЯ */}
         <div className={`rounded-2xl border overflow-hidden ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className={`p-4 border-b ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}><h3 className="font-bold text-sm">{t.toolkitTitle}</h3></div>
           <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800 text-xs font-bold">
