@@ -168,18 +168,20 @@ export default function Home() {
     setHistoryIndex((prevIdx) => Math.min(history.slice(0, prevIdx + 1).length, 99));
   }, [history, historyIndex]);
 
-  // ПОПРАВЕНО: Тук вече text се променя моментално, за да се задействат статистиките
-  const updateText = useCallback((newText: string, msg?: string, debounce = false) => {
+  // ОПРАВЕНО: Функцията за писане вече не блокира моменталното обновяване
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
+    historyDebounceRef.current = setTimeout(() => {
+      commitHistory(newText);
+    }, HISTORY_DEBOUNCE_MS);
+  };
+
+  const updateText = useCallback((newText: string, msg?: string) => {
     if (newText === text) return;
     setText(newText); 
     if (msg) showToast(msg);
-    if (debounce) {
-      if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-      historyDebounceRef.current = setTimeout(() => commitHistory(newText), HISTORY_DEBOUNCE_MS);
-    } else {
-      if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
-      commitHistory(newText);
-    }
+    commitHistory(newText);
   }, [text, showToast, commitHistory]);
 
   const undo = () => { if (historyIndex > 0) { setHistoryIndex(historyIndex - 1); setText(history[historyIndex - 1]); showToast(t.undo); } };
@@ -401,7 +403,13 @@ export default function Home() {
         </div>
 
         {!showPreview ? (
-          <textarea ref={textAreaRef} value={text} onChange={(e) => updateText(e.target.value, undefined, true)} placeholder={t.placeholder} className={`w-full h-48 p-4 rounded-xl border focus:ring-2 focus:ring-blue-500 text-sm resize-y ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`} />
+          <textarea 
+            ref={textAreaRef} 
+            value={text} 
+            onChange={(e) => handleTextChange(e.target.value)} 
+            placeholder={t.placeholder} 
+            className={`w-full h-48 p-4 rounded-xl border focus:ring-2 focus:ring-blue-500 text-sm resize-y ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`} 
+          />
         ) : (
           <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm whitespace-pre-wrap ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`}>{text || t.noTextPreview}</div>
         )}
