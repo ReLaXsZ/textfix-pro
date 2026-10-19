@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Lang = "bg" | "en" | "fr" | "de";
+type Lang = "bg" | "en" | "fr" | "de" | "es" | "tr";
 
 const SHARE_URL = "https://textfix-pro.vercel.app";
 
@@ -35,12 +35,28 @@ const TEXTS: Record<Lang, { shareText: string; shareLabel: string; copied: strin
     copyLink: "Link kopieren",
     copyFailed: "Kopieren fehlgeschlagen",
   },
+  es: {
+    shareText: "¡Descubre este gran editor y asistente de texto inteligente en línea!",
+    shareLabel: "Comparte este sitio:",
+    copied: "¡Copiado!",
+    copyLink: "Copiar enlace",
+    copyFailed: "Error al copiar",
+  },
+  tr: {
+    shareText: "Bu harika akıllı çevrimiçi metin düzenleyiciyi ve asistanı keşfedin!",
+    shareLabel: "Bu siteyi paylaş:",
+    copied: "Kopyalandı!",
+    copyLink: "Bağlantıyı kopyala",
+    copyFailed: "Kopyalama başarısız",
+  },
 };
 
 export default function ShareButtons({ lang = "bg", isLight = false }: { lang?: Lang; isLight?: boolean }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
-  const t = TEXTS[lang];
+  
+  // ВАЖНО: Ако езикът не е намерен, използваме английски по подразбиране
+  const t = TEXTS[lang] || TEXTS.en;
 
   useEffect(() => {
     return () => {
