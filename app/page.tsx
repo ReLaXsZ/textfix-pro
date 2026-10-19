@@ -16,7 +16,6 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const HISTORY_DEBOUNCE_MS = 500;
 const SESSION_SAVE_DEBOUNCE_MS = 3000;
 
-// КОМПОНЕНТ ЗА БУТОН С БАЛОНЧЕ (Tooltip)
 function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoading = false, isLight, processingText }: any) {
   let btnStyle = isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : isPro ? (isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700") : (isLight ? "bg-white text-slate-700 border-slate-200" : "bg-slate-900 text-slate-200 border-slate-800");
   return (
@@ -31,7 +30,6 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   );
 }
 
-// КОМПОНЕНТ ЗА AI БУТОН (с описание и балонче)
 function AiButton({ onClick, text, desc, tip, isAi = true, isLoading = false, isLight, processingText }: any) {
   return (
     <div className="relative inline-block w-full">
@@ -643,12 +641,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ТУК Е НОВИЯТ ФУТЪР */}
         <footer className={`pt-8 pb-8 border-t text-center text-[11px] text-slate-500 space-y-3 ${isLight ? "border-slate-200" : "border-slate-800"}`}>
           <div className="flex flex-wrap justify-center gap-4 mb-4">
-            <a href="/about" className="hover:text-blue-500 transition-colors">За нас</a>
-            <a href="/contact" className="hover:text-blue-500 transition-colors">Контакти</a>
-            <a href="/privacy" className="hover:text-blue-500 transition-colors">Политика за поверителност</a>
+            <a href="/about" className="hover:text-blue-500 transition-colors">{t.footerAbout}</a>
+            <a href="/contact" className="hover:text-blue-500 transition-colors">{t.footerContact}</a>
+            <a href="/privacy" className="hover:text-blue-500 transition-colors">{t.footerPrivacy}</a>
           </div>
           <div>TextFix Pro &copy; 2026 — Всички права запазени.</div>
         </footer>
