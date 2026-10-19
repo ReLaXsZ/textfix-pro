@@ -93,7 +93,7 @@ export default function Contact() {
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl space-y-4">
           <div>
             <h3 className="text-sm font-bold text-slate-200">{t.emailTitle}</h3>
-            <p className="text-sm text-slate-400 mt-1">{t.emailDesc} <br/><strong className="text-blue-400">support@textfix-pro.vercel.app</strong></p>
+            <p className="text-sm text-slate-400 mt-1">{t.emailDesc} <br/><strong className="text-blue-400">relaxsz91@gmail.com</strong></p>
           </div>
           
           <div className="pt-4 border-t border-slate-800">

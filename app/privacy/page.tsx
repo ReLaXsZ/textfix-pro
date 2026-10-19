@@ -13,7 +13,7 @@ const content = {
       { h: "3. Изкуствен интелект (AI)", p: "Когато използвате AI функции, текстът се изпраща към Google Gemini API. Не въвеждайте високочувствителна информация." },
       { h: "4. Бисквитки и AdSense", p: "Google използва бисквитки за персонализирани реклами. Можете да се откажете от настройките за реклами на Google." },
       { h: "5. Вашите права", p: "Можете да изчистите данните си по всяко време чрез настройките на браузъра." },
-      { h: "6. Контакт", p: "За въпроси: support@textfix-pro.vercel.app" }
+      { h: "6. Контакт", p: "За въпроси: relaxsz91@gmail.com" }
     ]
   },
   en: {
@@ -26,7 +26,7 @@ const content = {
       { h: "3. Artificial Intelligence (AI)", p: "When using AI features, text is sent to Google Gemini API. Do not enter highly sensitive information." },
       { h: "4. Cookies and AdSense", p: "Google uses cookies for personalized ads. You can opt out in Google Ads Settings." },
       { h: "5. Your Rights", p: "You can clear your data anytime via browser settings." },
-      { h: "6. Contact", p: "For questions: support@textfix-pro.vercel.app" }
+      { h: "6. Contact", p: "For questions: relaxsz91@gmail.com" }
     ]
   },
   fr: {
@@ -39,7 +39,7 @@ const content = {
       { h: "3. Intelligence Artificielle (IA)", p: "Les textes sont envoyés à l'API Google Gemini. N'entrez pas d'informations sensibles." },
       { h: "4. Cookies et AdSense", p: "Google utilise des cookies. Vous pouvez désactiver les annonces personnalisées." },
       { h: "5. Vos Droits", p: "Vous pouvez effacer vos données via les paramètres du navigateur." },
-      { h: "6. Contact", p: "Pour questions : support@textfix-pro.vercel.app" }
+      { h: "6. Contact", p: "Pour questions : relaxsz91@gmail.com" }
     ]
   },
   de: {
@@ -52,7 +52,7 @@ const content = {
       { h: "3. Künstliche Intelligenz (KI)", p: "Text wird an Google Gemini API gesendet. Geben Sie keine sensiblen Daten ein." },
       { h: "4. Cookies und AdSense", p: "Google verwendet Cookies für personalisierte Anzeigen. Sie können dies deaktivieren." },
       { h: "5. Ihre Rechte", p: "Sie können Ihre Daten über die Browsereinstellungen löschen." },
-      { h: "6. Kontakt", p: "Für Fragen: support@textfix-pro.vercel.app" }
+      { h: "6. Kontakt", p: "Für Fragen: relaxsz91@gmail.com" }
     ]
   },
   es: {
@@ -65,7 +65,7 @@ const content = {
       { h: "3. Inteligencia Artificial (IA)", p: "El texto se envía a Google Gemini API. No introduzcas información sensible." },
       { h: "4. Cookies y AdSense", p: "Google usa cookies. Puedes desactivar los anuncios personalizados." },
       { h: "5. Tus Derechos", p: "Puedes borrar tus datos en la configuración del navegador." },
-      { h: "6. Contacto", p: "Para preguntas: support@textfix-pro.vercel.app" }
+      { h: "6. Contacto", p: "Para preguntas: relaxsz91@gmail.com" }
     ]
   },
   tr: {
@@ -78,7 +78,7 @@ const content = {
       { h: "3. Yapay Zeka (YZ)", p: "Metinler Google Gemini API'ye gönderilir. Hassas bilgi girmeyin." },
       { h: "4. Çerezler ve AdSense", p: "Google çerezleri kullanır. Kişiselleştirilmiş reklamları kapatabilirsiniz." },
       { h: "5. Haklarınız", p: "Verilerinizi tarayıcı ayarlarından silebilirsiniz." },
-      { h: "6. İletişim", p: "Sorular için: support@textfix-pro.vercel.app" }
+      { h: "6. İletişim", p: "Sorular için: relaxsz91@gmail.com" }
     ]
   }
 };
