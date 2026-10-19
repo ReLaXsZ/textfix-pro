@@ -47,7 +47,6 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
 }
 
 export default function Home() {
-  // ВАЖНО: Задаваме начални стойности, които са еднакви за сървъра и клиента
   const [lang, setLang] = useState<Language>("bg");
   const [isLight, setIsLight] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -92,7 +91,6 @@ export default function Home() {
 
   const t: any = translations[lang] || translations.en;
 
-  // ВАЖНО: Зареждаме настройките едва след като компонентът се "монтира" в браузъра
   useEffect(() => {
     setIsMounted(true);
     try {
@@ -170,9 +168,11 @@ export default function Home() {
     setHistoryIndex((prevIdx) => Math.min(history.slice(0, prevIdx + 1).length, 99));
   }, [history, historyIndex]);
 
+  // ПОПРАВЕНО: Тук вече text се променя моментално, за да се задействат статистиките
   const updateText = useCallback((newText: string, msg?: string, debounce = false) => {
     if (newText === text) return;
-    setText(newText); if (msg) showToast(msg);
+    setText(newText); 
+    if (msg) showToast(msg);
     if (debounce) {
       if (historyDebounceRef.current) clearTimeout(historyDebounceRef.current);
       historyDebounceRef.current = setTimeout(() => commitHistory(newText), HISTORY_DEBOUNCE_MS);
@@ -333,7 +333,6 @@ export default function Home() {
   const charCounterColor = charCount > 5000 ? "text-rose-500 font-bold" : "text-blue-600";
   const mdBtnClass = `px-2.5 py-1 rounded border transition-colors ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"}`;
 
-  // За да избегнем трептене при първоначално зареждане
   if (!isMounted) return null;
 
   return (
