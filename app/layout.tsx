@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     "transliteration",
     "форматиране на текст",
     "AI резюме",
+    manifest: "/manifest.json",
   ],
   robots: {
     index: true,

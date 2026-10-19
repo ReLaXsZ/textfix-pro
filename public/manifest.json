@@ -1,0 +1,16 @@
+{
+  "name": "TextFix Pro",
+  "short_name": "TextFix",
+  "description": "Intelligent Text Assistant",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}
