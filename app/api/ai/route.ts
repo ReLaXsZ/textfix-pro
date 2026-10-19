@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 // --- RATE LIMITING (Защита от ботове) ---
-// Пазим история в паметта на сървъра (нулира се при рестарт, което е напълно достатъчно)
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const LIMIT = 15; // Максимум 15 заявки
+const LIMIT = 15; // Максимум 15 заявки на минута за 1 IP
 const WINDOW_MS = 60 * 1000; // за 1 минута
+
+// --- DAILY QUOTA (Защита на API ключа) ---
+let dailyCount = 0;
+let lastQuotaReset = Date.now();
+const DAILY_LIMIT = 300; // Максимум 300 AI заявки на ден за целия сайт
+const DAY_MS = 24 * 60 * 60 * 1000; // 24 часа
 
 const PROMPTS: Record<string, (text: string, custom?: string) => string> = {
   summary: (text) => `Summarize the following text concisely in the same language as the input:\n\n${text}`,
@@ -27,28 +32,35 @@ const PROMPTS: Record<string, (text: string, custom?: string) => string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Проверка за Rate Limit
-    const ip = req.headers.get("x-forwarded-for") || "unknown-ip";
     const now = Date.now();
+
+    // 1. Проверка за ДНЕВНА КВОТА
+    if (now - lastQuotaReset > DAY_MS) {
+      dailyCount = 0;
+      lastQuotaReset = now;
+    }
+    if (dailyCount >= DAILY_LIMIT) {
+      return NextResponse.json({ error: "Daily AI limit reached. Please try again tomorrow." }, { status: 429 });
+    }
+
+    // 2. Проверка за RATE LIMIT (на минута)
+    const ip = req.headers.get("x-forwarded-for") || "unknown-ip";
     const rateData = rateLimitMap.get(ip);
 
     if (rateData) {
       if (now - rateData.lastReset > WINDOW_MS) {
-        // Ако е минала 1 минута, нулираме брояча
         rateLimitMap.set(ip, { count: 1, lastReset: now });
       } else {
-        // Ако не е минала минута, увеличаваме брояча
         if (rateData.count >= LIMIT) {
           return NextResponse.json({ error: "Too many requests. Please wait a minute." }, { status: 429 });
         }
         rateData.count++;
       }
     } else {
-      // Първа заявка от това IP
       rateLimitMap.set(ip, { count: 1, lastReset: now });
     }
 
-    // 2. Изпълнение на AI заявката
+    // 3. Изпълнение на заявката
     const body = await req.json();
     const { text, action, customInstruction } = body;
 
@@ -80,6 +92,7 @@ export async function POST(req: NextRequest) {
 
     if (!aiResponse) return NextResponse.json({ error: "Empty response" }, { status: 502 });
     
+    dailyCount++; // Увеличаваме дневния брояч при успешна заявка
     return NextResponse.json({ result: aiResponse.trim() });
   } catch (err) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
