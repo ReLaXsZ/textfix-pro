@@ -30,6 +30,22 @@ function TooltipButton({ onClick, text, tip, isPro = false, isAi = false, isLoad
   );
 }
 
+// НОВ КОМПОНЕНТ: Бутон за AI с описание под него
+function AiButton({ onClick, text, desc, isAi = true, isLoading = false, isLight, processingText }: any) {
+  return (
+    <button type="button" onClick={onClick} disabled={isLoading} className={`w-full py-2 px-2 rounded-lg border text-xs font-semibold transition-all flex flex-col items-center justify-center gap-1 disabled:opacity-70 ${isAi ? (isLight ? "bg-blue-600 text-white border-blue-600" : "bg-blue-600 text-white border-blue-500") : ""}`}>
+      {isLoading ? (
+        <span className="flex items-center gap-1"><span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />{processingText}</span>
+      ) : (
+        <>
+          <span>{text}</span>
+          <span className="text-[9px] font-normal opacity-70">{desc}</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 export default function Home() {
   const [lang, setLang] = useState<Language>("bg");
   const [isLight, setIsLight] = useState(false);
@@ -266,7 +282,6 @@ export default function Home() {
     setIsSpeaking(true); window.speechSynthesis.speak(utterance); showToast(t.speaking);
   };
 
-  // ТУК Е ПОПРАВКАТА - ДОБАВЕНА Е ЗАЯВКАТА КЪМ API-ТО
   const handleAiAction = async (actionType: string, customInst: string = "") => {
     if (!text.trim() && actionType !== "generate") return showToast(t.noTextForAi);
     setLoadingAction(actionType); showToast(t.processing);
@@ -442,14 +457,14 @@ export default function Home() {
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <TooltipButton onClick={() => handleAiAction("summary")} text={t.aiSummary} tip={t.tips.aiSummary} isAi isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => handleAiAction("fix")} text={t.aiFix} tip={t.tips.aiFix} isAi isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => handleAiAction("expand")} text={t.aiExpand} tip={t.tips.aiExpand} isAi isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("summary")} text={t.aiSummary} desc={t.desc_aiSummary} isLoading={loadingAction === "summary"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("fix")} text={t.aiFix} desc={t.desc_aiFix} isLoading={loadingAction === "fix"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("expand")} text={t.aiExpand} desc={t.desc_aiExpand} isLoading={loadingAction === "expand"} isLight={isLight} processingText={t.processing} />
             
-            <TooltipButton onClick={() => handleAiAction("fix_explain")} text={t.aiFixExplain} tip="Fix and Explain" isAi isLoading={loadingAction === "fix_explain"} isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} tip="Detect & Fix" isAi isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} tip="Meta Descriptions" isAi isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
-            <TooltipButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} tip="Reading Level" isAi isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("fix_explain")} text={t.aiFixExplain} desc={t.desc_aiFixExplain} isLoading={loadingAction === "fix_explain"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("detect_fix")} text={t.aiDetectFix} desc={t.desc_aiDetectFix} isLoading={loadingAction === "detect_fix"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("meta_desc")} text={t.aiMetaDesc} desc={t.desc_aiMetaDesc} isLoading={loadingAction === "meta_desc"} isLight={isLight} processingText={t.processing} />
+            <AiButton onClick={() => handleAiAction("reading_level")} text={t.aiReadingLevel} desc={t.desc_aiReadingLevel} isLoading={loadingAction === "reading_level"} isLight={isLight} processingText={t.processing} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-blue-200/50 dark:border-slate-700/50">
@@ -491,13 +506,38 @@ export default function Home() {
           </div>
         )}
 
+        {/* TOOLKIT SECTION С ОПИСАНИЯ */}
         <div className={`rounded-2xl border overflow-hidden ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className={`p-4 border-b ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}><h3 className="font-bold text-sm">{t.toolkitTitle}</h3></div>
           <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800 text-xs font-bold">
-            <button onClick={() => setActiveTab("pass")} className={`flex-1 py-3 px-2 text-center border-b-2 ${activeTab === "pass" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>{t.toolPass}</button>
-            <button onClick={() => setActiveTab("img")} className={`flex-1 py-3 px-2 text-center border-b-2 ${activeTab === "img" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>{t.toolImg}</button>
-            <button onClick={() => setActiveTab("ocr")} className={`flex-1 py-3 px-2 text-center border-b-2 ${activeTab === "ocr" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>{t.toolOcr}</button>
-            <button onClick={() => setActiveTab("social")} className={`flex-1 py-3 px-2 text-center border-b-2 ${activeTab === "social" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}>{t.toolSocial}</button>
+            <button 
+              onClick={() => setActiveTab("pass")} 
+              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "pass" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
+            >
+              <span>{t.toolPass}</span>
+              <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_pass}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("img")} 
+              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "img" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
+            >
+              <span>{t.toolImg}</span>
+              <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_img}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("ocr")} 
+              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "ocr" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
+            >
+              <span>{t.toolOcr}</span>
+              <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_ocr}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("social")} 
+              className={`flex-1 py-3 px-2 text-center border-b-2 flex flex-col items-center justify-center gap-1 ${activeTab === "social" ? "border-blue-500 text-blue-600" : "border-transparent text-slate-500"}`}
+            >
+              <span>{t.toolSocial}</span>
+              <span className="text-[9px] font-normal opacity-70 hidden sm:block">{t.desc_social}</span>
+            </button>
           </div>
           <div className="p-4">
             {activeTab === "pass" && (
