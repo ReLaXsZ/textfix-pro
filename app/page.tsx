@@ -220,7 +220,6 @@ export default function Home() {
     } catch (err) { console.error(err); }
   };
 
-  // --- ФУНКЦИИ ЗА ПОЧИСТВАНЕ И ФОРМАТИРАНЕ ---
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
   const makeSmall = () => updateText(text.toLowerCase(), t.lowerSuccess);
   const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
@@ -350,9 +349,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* СЕКЦИЯ ПОЧИСТВАНЕ (Върнати всички бутони) */}
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
-          <summary className="p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">🔠 {t.tools}</summary>
+          <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">
+            <div>🔠 {t.tools}</div>
+            <span className="transition group-open:rotate-180 text-slate-400">
+              <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </summary>
           <div className="p-4 pt-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             <button type="button" onClick={makeBIG} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.uppercase}</button>
             <button type="button" onClick={makeSmall} className={`${mdBtnClass} py-2.5 font-semibold`}>{t.lowercase}</button>
@@ -370,7 +373,12 @@ export default function Home() {
         </details>
 
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
-          <summary className="p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">⚡ {t.proTools}</summary>
+          <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">
+            <div>⚡ {t.proTools}</div>
+            <span className="transition group-open:rotate-180 text-slate-400">
+              <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </summary>
           <div className="p-4 pt-0 grid grid-cols-1 sm:grid-cols-3 gap-2">
              <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.encodeBase64}</button>
              <button className={`${mdBtnClass} py-2.5 font-semibold`}>{t.decodeBase64}</button>
