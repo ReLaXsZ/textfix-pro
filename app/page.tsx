@@ -220,6 +220,40 @@ export default function Home() {
     } catch (err) { console.error(err); }
   };
 
+  // --- ФУНКЦИИ ЗА КОПИРАНЕ И ИЗТЕГЛЯНЕ ---
+  const copyText = async () => {
+    if (!text.trim()) return showToast(t.noTextToCopy);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t.copied);
+    } catch (err) {
+      showToast(t.encodeError);
+    }
+  };
+
+  const downloadTxt = () => {
+    if (!text.trim()) return showToast(t.noTextToDownload);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "TextFix.txt");
+    showToast(t.downloaded);
+  };
+
+  const downloadDocx = () => {
+    if (!text.trim()) return showToast(t.noTextToDownload);
+    const paragraphs = text.split("\n").map((line) => new Paragraph({ children: [new TextRun({ text: line, size: 24 })] }));
+    const doc = new Document({ sections: [{ children: paragraphs }] });
+    Packer.toBlob(doc).then((blob) => { saveAs(blob, "TextFix.docx"); showToast(t.downloaded); });
+  };
+
+  const downloadPdf = () => {
+    if (!text.trim()) return showToast(t.noTextToDownload);
+    const doc = new jsPDF();
+    const splitText = doc.splitTextToSize(text, 180);
+    doc.text(splitText, 15, 15);
+    doc.save("TextFix.pdf");
+    showToast(t.downloaded);
+  };
+
   const makeBIG = () => updateText(text.toUpperCase(), t.upperSuccess);
   const makeSmall = () => updateText(text.toLowerCase(), t.lowerSuccess);
   const capitalizeSentences = () => updateText(text.replace(/(^|[.!?]\s+|\n\s*)([a-zа-яё])/gi, (_m, p, l) => p + l.toUpperCase()), t.sentenceSuccess);
@@ -259,6 +293,7 @@ export default function Home() {
 
         <ShareButtons lang={lang as any} isLight={isLight} />
 
+        {/* Статистики */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-center">
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className={`text-lg font-bold ${charCounterColor}`}>{charCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.chars}</div></div>
           <div className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg font-bold text-blue-600">{wordCount}</div><div className="text-[10px] text-slate-500 uppercase mt-0.5">{t.words}</div></div>
@@ -268,12 +303,23 @@ export default function Home() {
           <button type="button" onClick={async () => { try { const t = await navigator.clipboard.readText(); updateText(t, "OK!"); } catch { } }} className={`p-3 rounded-xl border ${isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"}`}><div className="text-lg">{t.pasteBtn}</div></button>
         </div>
 
-        <label className={`border-2 border-dashed p-4 rounded-xl text-center cursor-pointer block ${isLight ? "border-blue-300 bg-blue-50/50" : "border-blue-500/30 bg-blue-950/20"}`}>
-          <div className="text-xs md:text-sm font-semibold">{t.upload}</div>
-          <div className="text-[11px] text-slate-500 mt-1">{t.uploadSub}</div>
-          <input type="file" accept=".txt,.csv,.md,.html,.js,.json,.docx" className="hidden" />
-        </label>
+        {/* Качване и Експорт */}
+        <div className="space-y-2">
+          <div className="flex flex-wrap justify-between items-center text-xs gap-2">
+            <div className="space-x-2 flex items-center">
+              <button type="button" onClick={() => {}} className={`px-3 py-1.5 rounded-md font-semibold border ${isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700"}`}>{t.voiceInput}</button>
+              <button type="button" onClick={() => {}} className={`px-3 py-1.5 rounded-md font-semibold border ${isLight ? "bg-slate-200 text-slate-800 border-slate-300" : "bg-slate-800 text-slate-200 border-slate-700"}`}>{t.speakText}</button>
+            </div>
+            <div className="space-x-2 flex items-center">
+              <button type="button" onClick={copyText} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.copy}</button>
+              <button type="button" onClick={downloadTxt} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.downloadTxt}</button>
+              <button type="button" onClick={downloadDocx} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.downloadDocx}</button>
+              <button type="button" onClick={downloadPdf} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3 py-1.5 rounded-md transition-all shadow-sm">{t.downloadPdf}</button>
+            </div>
+          </div>
+        </div>
 
+        {/* Undo/Redo + Compare + Preview */}
         <div className={`p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className="flex items-center gap-1.5 border-r pr-3 border-slate-300 dark:border-slate-700">
             <button type="button" onClick={undo} disabled={historyIndex <= 0} className={`px-3 py-1.5 rounded-lg font-bold border disabled:opacity-30 ${isLight ? "bg-slate-100 border-slate-300" : "bg-slate-800 border-slate-700"}`}>{t.undo}</button>
@@ -285,12 +331,14 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Текстова площ */}
         {!showPreview ? (
           <textarea ref={textAreaRef} value={text} onChange={(e) => updateText(e.target.value, undefined, true)} placeholder={t.placeholder} className={`w-full h-48 p-4 rounded-xl border focus:ring-2 focus:ring-blue-500 text-sm resize-y ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`} />
         ) : (
           <div className={`w-full h-48 p-4 rounded-xl border overflow-y-auto text-sm whitespace-pre-wrap ${isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"}`}>{text || t.noTextPreview}</div>
         )}
 
+        {/* AI Инструменти */}
         <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? "bg-blue-50/40 border-blue-100" : "bg-slate-900/50 border-slate-800"}`}>
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider">{t.aiTools}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -300,6 +348,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Секция с нови инструменти (Toolkit) */}
         <div className={`rounded-2xl border overflow-hidden ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <div className={`p-4 border-b ${isLight ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}><h3 className="font-bold text-sm">{t.toolkitTitle}</h3></div>
           <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-800 text-xs font-bold">
@@ -349,6 +398,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Почистване (12 бутона + стрелкичка) */}
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">
             <div>🔠 {t.tools}</div>
@@ -372,6 +422,7 @@ export default function Home() {
           </div>
         </details>
 
+        {/* PRO Инструменти (стрелкичка) */}
         <details className={`group border rounded-2xl ${isLight ? "bg-white border-slate-200" : "bg-slate-900 border-slate-800"}`}>
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none font-bold text-xs uppercase text-slate-500">
             <div>⚡ {t.proTools}</div>
